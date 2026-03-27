@@ -1,0 +1,151 @@
+<!-- ── CANVAS (neural network / constellation background) ── -->
+<canvas #bgCanvas class="canvas-bg"></canvas>
+
+<!-- ── AURORA MESH BACKGROUND ── -->
+<div class="aurora">
+    <div class="aurora-layer aurora-1"></div>
+    <div class="aurora-layer aurora-2"></div>
+    <div class="aurora-layer aurora-3"></div>
+    <div class="aurora-layer aurora-4"></div>
+</div>
+
+<!-- ── ANIMATED GRID OVERLAY ── -->
+<div class="grid-overlay"></div>
+
+<!-- ── ANIMATED BACKGROUND BLOBS ── -->
+<div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+</div>
+
+<!-- ── FLOATING GEOMETRIC SHAPES ── -->
+<div class="geo-shapes">
+    <div class="geo geo-circle"></div>
+    <div class="geo geo-square"></div>
+    <div class="geo geo-circle"></div>
+    <div class="geo geo-triangle"></div>
+    <div class="geo geo-circle"></div>
+    <div class="geo geo-square"></div>
+    <div class="geo geo-circle"></div>
+    <div class="geo geo-triangle"></div>
+    <div class="geo geo-circle"></div>
+    <div class="geo geo-square"></div>
+</div>
+
+<!-- ── ENHANCED FLOATING PARTICLES ── -->
+<div class="particles">
+    <div class="p"></div><div class="p"></div><div class="p"></div>
+    <div class="p"></div><div class="p"></div><div class="p"></div>
+    <div class="p"></div><div class="p"></div><div class="p"></div>
+    <div class="p"></div><div class="p"></div><div class="p"></div>
+</div>
+
+<!-- ── SCANNING LINE ── -->
+<div class="scan-line"></div>
+
+<!-- ── CURSOR GLOW ── -->
+<div #cursorGlow class="cursor-glow"></div>
+
+<!-- ── CORNER DECORATORS ── -->
+<div class="corner-deco corner-tl"></div>
+<div class="corner-deco corner-tr"></div>
+<div class="corner-deco corner-bl"></div>
+<div class="corner-deco corner-br"></div>
+
+
+
+<!-- ══════════════════════ MAIN SCREEN ══════════════════════ -->
+<div class="screen">
+
+    <!-- ── TOP BAR ── -->
+    <div class="top-bar">
+        <div class="logo-zone">
+            <div class="logo-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+            </div>
+            <div>
+                <div class="brand-name">
+                    SmartVisitor <span class="live-badge">LIVE</span>
+                </div>
+                <div class="brand-sub">Visitor Experience Platform</div>
+            </div>
+        </div>
+
+        <div class="datetime">
+            <div class="clock-display">{{ clock }}</div>
+            <div class="date-display">{{ date }}</div>
+        </div>
+    </div>
+
+    <!-- ── HERO ── -->
+    <div class="hero">
+
+        <h1 class="welcome-heading">
+            Welcome to SmartVisitor,<br /><em>{{ greetingWord }}!</em>
+        </h1>
+
+        <p class="subtitle">
+            Please select an option to continue.
+        </p>
+
+
+        <!-- ── ACTION CARDS ── -->
+        <div class="actions">
+
+            <!-- CHECK IN -->
+            <div class="action-card check-in"
+                 (click)="handleClick($event, 'check-in')"
+                 (mousemove)="onCardMouseMove($event)"
+                 (mouseleave)="onCardMouseLeave($event)">
+
+                <div class="card-icon-wrap">
+                    <!-- ENTER ICON -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <path d="M10 17l5-5-5-5" />
+                        <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                </div>
+
+                <div class="card-label">Visitor Entry</div>
+                <div class="card-title">Check In</div>
+                <div class="card-desc">Register your visit</div>
+            </div>
+
+
+            <!-- CHECK OUT -->
+            <div class="action-card check-out"
+                 (click)="handleClick($event, 'check-out')"
+                 (mousemove)="onCardMouseMove($event)"
+                 (mouseleave)="onCardMouseLeave($event)">
+
+                <div class="card-icon-wrap">
+                    <!-- EXIT ICON -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2">
+                        <path d="M14 7l-5 5 5 5" />
+                        <line x1="9" y1="12" x2="21" y2="12" />
+                    </svg>
+                </div>
+
+                <div class="card-label">Visitor Exit</div>
+                <div class="card-title">Check Out</div>
+                <div class="card-desc">Complete your visit</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── BOTTOM BAR ── -->
+    <div class="bottom-bar">
+        <div class="status">
+            <div class="dot"></div>
+            System Status: Online
+        </div>
+        <div class="tap-hint">↑ Tap a card to begin ↑</div>
+
+    </div>
+
+</div>

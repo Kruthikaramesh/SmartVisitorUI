@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from 'app/core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -15,116 +15,71 @@ import { FormsModule } from '@angular/forms';
 export class LoginComponent implements OnInit {
 
   loginForm!: FormGroup;
-
   submitted = false;
   loading = false;
   errorMessage = '';
   showPassword = false;
-
-  // ✅ Forgot / Reset password
-  showResetPassword = false;
-  resetEmail = '';
-  resetMessage = '';
-
   visitorAction = '';
+
+  // FIX: show a success banner when redirected here after password reset
+  resetSuccess = false;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private authService: AuthService
   ) { }
 
   ngOnInit(): void {
-    this.initForm();
-
-    // Read query param (check-in / check-out)
-    this.visitorAction = this.route.snapshot.queryParamMap.get('action') ?? '';
-  }
-
-  // ✅ Initialize form
-  private initForm(): void {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    this.visitorAction = this.route.snapshot.queryParamMap.get('action') ?? '';
+
+    // Show success banner if redirected after password reset
+    this.resetSuccess = this.route.snapshot.queryParamMap.get('reset') === 'success';
   }
 
-  // ✅ Form controls getter
-  get f() {
-    return this.loginForm.controls;
-  }
+  get f() { return this.loginForm.controls; }
 
-  // ✅ Enable button only if fields are filled
   get isFormFilled(): boolean {
-    const email = this.f['email'].value?.trim();
-    const password = this.f['password'].value?.trim();
-    return !!(email && password);
+    return !!(this.f['email']?.value?.trim() && this.f['password']?.value?.trim());
   }
 
-  // ✅ Toggle password visibility
   togglePassword(): void {
     this.showPassword = !this.showPassword;
   }
 
-  // ✅ Forgot password toggle
-  onForgotPassword(): void {
-    this.showResetPassword = !this.showResetPassword;
-    this.resetMessage = '';
-  }
-
-  // ✅ Reset password
-  onResetPassword(): void {
-    if (!this.resetEmail) {
-      this.resetMessage = 'Please enter your email';
-      return;
-    }
-
-    setTimeout(() => {
-      this.resetMessage = 'Reset link sent to your email (demo)';
-    }, 1000);
-  }
-
-  // ✅ Submit login
   onSubmit(): void {
     this.submitted = true;
     this.errorMessage = '';
+    this.resetSuccess = false;
 
-    if (this.loginForm.invalid) {
-      return;
-    }
+    if (this.loginForm.invalid) return;
 
     this.loading = true;
-
     const { email, password } = this.loginForm.value;
 
-    // 🔥 Simulated API call
-    setTimeout(() => {
-
-      this.loading = false;
-
-      if (email === 'admin@smartvisitor.com' && password === 'admin') {
-
-        switch (this.visitorAction) {
-          case 'check-out':
-            this.router.navigate(['/check-out']);
-            break;
-
-          case 'check-in':
-          default:
-            this.router.navigate(['/']);
-            break;
-        }
-
-      } else {
-        this.errorMessage = 'Invalid email or password. Please try again.';
-
+    this.authService.login(email, password).subscribe({
+      next: () => {
+        this.loading = false;
+        const target = this.visitorAction === 'check-out' ? ['/check-out'] : ['/'];
+        this.router.navigate(target);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading = false;
         this.submitted = false;
-
-        setTimeout(() => {
-          this.submitted = true;
-        }, 10);
+        this.errorMessage = err?.error?.message || 'Invalid email or password';
+        setTimeout(() => (this.submitted = true), 10);
       }
+    });
+  }
 
-    }, 1000);
+  // FIX: navigates to dedicated page instead of showing an inline form
+  onForgotPassword(): void {
+    this.router.navigate(['/auth/forgot-password']);
   }
 }

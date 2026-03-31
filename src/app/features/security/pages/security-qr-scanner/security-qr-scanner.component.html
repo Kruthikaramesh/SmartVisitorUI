@@ -1,0 +1,76 @@
+<section class="scanner-page">
+  <div class="scanner-shell">
+    <header class="scanner-head">
+      <h1>QR Scanner</h1>
+      <p>Pick a mode, extract token, add optional remarks, and verify entry access instantly.</p>
+    </header>
+
+    <article class="scanner-card">
+      <div class="mode-tabs">
+        <button type="button" [class.active]="mode === 'token'" (click)="setMode('token')">Token</button>
+        <button type="button" [class.active]="mode === 'camera'" (click)="setMode('camera')">Camera Scan</button>
+        <button type="button" [class.active]="mode === 'upload'" (click)="setMode('upload')">Upload Image</button>
+      </div>
+
+      <div class="mode-content" [formGroup]="form">
+        <ng-container [ngSwitch]="mode">
+          <section *ngSwitchCase="'token'" class="mode-pane">
+            <label>Access Token</label>
+            <input
+              type="text"
+              formControlName="token"
+              placeholder="Example: SV-ALPHA-77" />
+          </section>
+
+          <section *ngSwitchCase="'camera'" class="mode-pane">
+            <div class="camera-frame">
+              <video #videoEl autoplay muted playsinline></video>
+              <div class="scan-overlay">Scan QR inside frame</div>
+            </div>
+            <p class="hint" *ngIf="!cameraSupported">Camera mode is not supported on this browser.</p>
+          </section>
+
+          <section *ngSwitchCase="'upload'" class="mode-pane">
+            <label class="upload-box">
+              <input type="file" accept="image/*" (change)="onUpload($event)" />
+              <span>Upload QR image</span>
+            </label>
+            <p class="hint" *ngIf="uploadedFileName">Selected: {{ uploadedFileName }}</p>
+          </section>
+        </ng-container>
+
+        <label>Remarks (optional)</label>
+        <textarea formControlName="remarks" rows="3" placeholder="Any gate notes or visitor remarks"></textarea>
+
+        <p class="extract-message" *ngIf="extractMessage">{{ extractMessage }}</p>
+
+        <button type="button" class="verify-btn" (click)="verify()">Verify Access</button>
+      </div>
+    </article>
+  </div>
+
+  <aside class="info-rail">
+    <article class="info-card">
+      <h3>Secure Verification</h3>
+      <p>{{ verificationResult?.title || 'Signature + token state checks are run before entry.' }}</p>
+    </article>
+
+    <article class="info-card">
+      <h3>Validity Checked</h3>
+      <p>{{ verificationResult?.details || 'Validity window, approval, and token structure are reviewed.' }}</p>
+    </article>
+
+    <article class="info-card">
+      <h3>Instant Check-in</h3>
+      <p>{{ verificationResult?.checkinMessage || 'Approved scans are logged immediately for audit and traceability.' }}</p>
+    </article>
+
+    <article class="info-card faq">
+      <h3>FAQ</h3>
+      <p><strong>Q:</strong> Camera cannot detect QR?</p>
+      <p><strong>A:</strong> Use upload mode or enter token manually.</p>
+      <p><strong>Q:</strong> Token says expired?</p>
+      <p><strong>A:</strong> Ask host to re-issue an active token.</p>
+    </article>
+  </aside>
+</section>

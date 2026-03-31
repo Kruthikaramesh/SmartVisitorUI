@@ -1,0 +1,31 @@
+<div class="security-layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">SV</div>
+      <div>
+        <p class="brand-title">SmartVisitor</p>
+        <p class="brand-role">Security Role</p>
+      </div>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="dashboard" routerLinkActive="active" class="nav-item">
+        <span class="dot"></span>
+        Dashboard
+      </a>
+      <a routerLink="qr-scanner" routerLinkActive="active" class="nav-item">
+        <span class="dot"></span>
+        QR Scanner
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Shift: Morning</p>
+      <p>{{ now | date: 'EEE, d MMM y' }}</p>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

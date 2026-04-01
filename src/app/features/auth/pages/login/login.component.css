@@ -361,7 +361,7 @@
 .login-card {
   position: relative;
   z-index: 2;
-  width: 390px;
+  width: 480px;
   padding: 2.8rem 2.6rem;
   border-radius: 28px;
   background: var(--card-bg);
@@ -379,7 +379,7 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 5px;
     background: linear-gradient(90deg, var(--blue), var(--teal));
     border-radius: 28px 28px 0 0;
   }
@@ -460,6 +460,22 @@
   margin-bottom: 1.8rem;
 }
 
+.forgot-link {
+  font-size: 0.85rem;
+  color: var(--blue);
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+  .forgot-link:hover {
+    color: #1058c8;
+    text-underline-offset: 3px;
+  }
+
+
 /* ── ERROR BANNER ── */
 .error-banner {
   display: flex;
@@ -480,6 +496,7 @@
     height: 15px;
     flex-shrink: 0;
   }
+
 
 @keyframes shakeIn {
   0%,100% {
@@ -644,7 +661,7 @@
 
   .login-btn.btn-ready {
     background: linear-gradient(135deg, var(--blue) 0%, #1058c8 100%);
-    color: #fff;
+    color: #000000;
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(26,111,232,0.35);
   }

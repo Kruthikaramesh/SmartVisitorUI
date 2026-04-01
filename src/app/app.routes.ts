@@ -13,8 +13,6 @@ import { ResetPasswordComponent } from './features/auth/pages/reset-password/res
 export const routes: Routes = [
   // ── Public pages ───────────────────────────────────────────────────────────
   { path: '', component: WelcomePageComponent },
-  { path: 'check-in', component: LoginComponent },
-  { path: 'check-out', component: LoginComponent },
 
   // ── Auth flow ──────────────────────────────────────────────────────────────
   { path: 'auth/login', component: LoginComponent },

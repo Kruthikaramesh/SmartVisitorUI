@@ -1,5 +1,6 @@
 export interface VisitorRequest {
   requestId: number;
+  requestedById: number;
   visitorName: string;
   requestedByName: string;
   purpose: string;

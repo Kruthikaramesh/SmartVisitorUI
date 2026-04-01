@@ -1,0 +1,214 @@
+<div class="user-dashboard-container">
+  <!-- Toast Notification -->
+  <div *ngIf="toast" class="toast" [class.success]="toast.ok" [class.error]="!toast.ok">
+    {{ toast.msg }}
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Your Dashboard</h1>
+    <p class="subtitle">Hello {{ currentUserName }}, track your visitor requests and access logs</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div *ngIf="kpi" class="kpi-section">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpi.totalRequests }}</div>
+        <div class="kpi-label">Total Requests</div>
+      </div>
+      <div class="kpi-card active">
+        <div class="kpi-value">{{ kpi.activeRequests }}</div>
+        <div class="kpi-label">Active</div>
+      </div>
+      <div class="kpi-card pending">
+        <div class="kpi-value">{{ kpi.pendingRequests }}</div>
+        <div class="kpi-label">Pending Approval</div>
+      </div>
+      <div class="kpi-card approved">
+        <div class="kpi-value">{{ kpi.approvedRequests }}</div>
+        <div class="kpi-label">Approved</div>
+      </div>
+      <div class="kpi-card rejected">
+        <div class="kpi-value">{{ kpi.rejectedRequests }}</div>
+        <div class="kpi-label">Rejected</div>
+      </div>
+      <div class="kpi-card expired">
+        <div class="kpi-value">{{ kpi.expiredRequests }}</div>
+        <div class="kpi-label">Expired</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading your dashboard...</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs-container" *ngIf="!loading">
+    <div class="tabs">
+      <button
+        class="tab-btn"
+        [class.active]="selectedTab === 'overview'"
+        (click)="switchTab('overview')"
+      >
+        Overview
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="selectedTab === 'requests'"
+        (click)="switchTab('requests')"
+      >
+        My Requests ({{ requests.length }})
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="selectedTab === 'visits'"
+        (click)="switchTab('visits')"
+      >
+        Visit History ({{ visitLogs.length }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Overview Tab -->
+  <div *ngIf="selectedTab === 'overview'" class="tab-content">
+    <div class="content-section">
+      <h2>Active Requests</h2>
+      <div *ngIf="getActiveRequests().length > 0" class="requests-grid">
+        <div *ngFor="let request of getActiveRequests()" class="request-card active-card">
+          <div class="card-header">
+            <h3>{{ request.visitorName }}</h3>
+            <span class="status-badge status-approved">ACTIVE</span>
+          </div>
+          <div class="card-body">
+            <div class="card-detail">
+              <label>Purpose</label>
+              <p>{{ request.purpose }}</p>
+            </div>
+            <div class="card-detail">
+              <label>Requested By</label>
+              <p>{{ request.requestedByName }}</p>
+            </div>
+            <div class="card-detail">
+              <label>Valid Period</label>
+              <p>{{ formatDate(request.validFrom) }} - {{ formatDate(request.validTill) }}</p>
+            </div>
+            <div class="card-detail">
+              <label>Days Remaining</label>
+              <p class="days-remaining">{{ getDaysUntilExpiry(request.validTill) }} days</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="getActiveRequests().length === 0" class="empty-state">
+        <p>No active requests at the moment</p>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>Pending & Expired Requests</h2>
+      <div *ngIf="requests.length > 0" class="requests-grid">
+        <div
+          *ngFor="let request of requests"
+          [ngClass]="getStatusClass(request.status)"
+          class="request-card"
+        >
+          <div class="card-header">
+            <h3>{{ request.visitorName }}</h3>
+            <span class="status-badge" [ngClass]="getStatusClass(request.status)">
+              {{ request.status.toUpperCase() }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="card-detail">
+              <label>Purpose</label>
+              <p>{{ request.purpose }}</p>
+            </div>
+            <div class="card-detail">
+              <label>Valid Till</label>
+              <p>{{ formatDate(request.validTill) }}</p>
+            </div>
+            <div class="card-detail" *ngIf="request.status.toLowerCase() === 'approved'">
+              <label>Days Remaining</label>
+              <p>{{ getDaysUntilExpiry(request.validTill) }} days</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="requests.length === 0" class="empty-state">
+        <p>No requests available</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requests Tab -->
+  <div *ngIf="selectedTab === 'requests'" class="tab-content">
+    <div class="table-wrapper">
+      <table class="requests-table">
+        <thead>
+          <tr>
+            <th>Visitor Name</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Valid From</th>
+            <th>Valid Till</th>
+            <th>Requested At</th>
+            <th>Approved By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="requests.length === 0">
+            <td colspan="7" class="no-data">No requests found</td>
+          </tr>
+          <tr *ngFor="let request of requests" [ngClass]="getStatusClass(request.status)">
+            <td><strong>{{ request.visitorName }}</strong></td>
+            <td class="purpose">{{ request.purpose }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(request.status)">
+                {{ request.status.toUpperCase() }}
+              </span>
+            </td>
+            <td>{{ formatDate(request.validFrom) }}</td>
+            <td>{{ formatDate(request.validTill) }}</td>
+            <td>{{ formatDate(request.requestedAt) }}</td>
+            <td>{{ request.approvedByName || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Visit History Tab -->
+  <div *ngIf="selectedTab === 'visits'" class="tab-content">
+    <div class="table-wrapper">
+      <table class="visits-table">
+        <thead>
+          <tr>
+            <th>Visitor Name</th>
+            <th>Check In</th>
+            <th>Check Out</th>
+            <th>Duration</th>
+            <th>Purpose</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="visitLogs.length === 0">
+            <td colspan="6" class="no-data">No visit logs found</td>
+          </tr>
+          <tr *ngFor="let log of visitLogs">
+            <td><strong>{{ log.visitorName }}</strong></td>
+            <td>{{ formatDate(log.checkInTime) }}</td>
+            <td>{{ log.checkOutTime ? formatDate(log.checkOutTime) : '-' }}</td>
+            <td class="duration">{{ log.duration || 'Active' }}</td>
+            <td class="purpose">{{ log.purpose }}</td>
+            <td class="notes">{{ log.notes || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

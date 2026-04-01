@@ -1,0 +1,122 @@
+<div class="admin-dashboard-container">
+  <!-- Toast Notification -->
+  <div *ngIf="toast" class="toast" [class.success]="toast.ok" [class.error]="!toast.ok">
+    {{ toast.msg }}
+  </div>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Admin Dashboard</h1>
+    <p class="subtitle">Manage visitor requests and approvals</p>
+  </div>
+
+  <!-- KPI Cards -->
+  <div *ngIf="kpi" class="kpi-section">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-value">{{ kpi.totalRequests }}</div>
+        <div class="kpi-label">Total Requests</div>
+      </div>
+      <div class="kpi-card pending">
+        <div class="kpi-value">{{ kpi.pendingRequests }}</div>
+        <div class="kpi-label">Pending</div>
+      </div>
+      <div class="kpi-card approved">
+        <div class="kpi-value">{{ kpi.approvedRequests }}</div>
+        <div class="kpi-label">Approved</div>
+      </div>
+      <div class="kpi-card rejected">
+        <div class="kpi-value">{{ kpi.rejectedRequests }}</div>
+        <div class="kpi-label">Rejected</div>
+      </div>
+      <div class="kpi-card expired">
+        <div class="kpi-value">{{ kpi.expiredRequests }}</div>
+        <div class="kpi-label">Expired</div>
+      </div>
+      <div class="kpi-card approval-rate">
+        <div class="kpi-value">{{ kpi.approvalRate }}%</div>
+        <div class="kpi-label">Approval Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <!-- Pending Requests Section -->
+  <div *ngIf="!loading && pendingRequests.length > 0" class="requests-section">
+    <div class="section-header">
+      <h2>Pending Requests - Action Required</h2>
+      <span class="badge-count">{{ pendingRequests.length }}</span>
+    </div>
+
+    <div class="requests-table-wrapper">
+      <table class="requests-table">
+        <thead>
+          <tr>
+            <th>Visitor Name</th>
+            <th>Requested By</th>
+            <th>Purpose</th>
+            <th>Valid From</th>
+            <th>Valid Till</th>
+            <th>Days Until Expiry</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let request of pendingRequests" class="request-row">
+            <td class="visitor-name">
+              <strong>{{ request.visitorName }}</strong>
+            </td>
+            <td>{{ request.requestedByName }}</td>
+            <td class="purpose">{{ request.purpose }}</td>
+            <td>{{ formatDate(request.validFrom) }}</td>
+            <td>{{ formatDate(request.validTill) }}</td>
+            <td>
+              <span class="days-badge" [class.expiring]="getDaysUntilExpiry(request.validTill) <= 3">
+                {{ getDaysUntilExpiry(request.validTill) }} days
+              </span>
+            </td>
+            <td class="actions">
+              <button
+                (click)="approveRequest(request)"
+                [disabled]="actionLoading[request.requestId]"
+                class="btn btn-approve"
+                title="Approve this request"
+              >
+                <span *ngIf="!actionLoading[request.requestId]">✓ Approve</span>
+                <span *ngIf="actionLoading[request.requestId]">...</span>
+              </button>
+              <button
+                (click)="rejectRequest(request)"
+                [disabled]="actionLoading[request.requestId]"
+                class="btn btn-reject"
+                title="Reject this request"
+              >
+                <span *ngIf="!actionLoading[request.requestId]">✕ Reject</span>
+                <span *ngIf="actionLoading[request.requestId]">...</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- No Pending Requests -->
+  <div *ngIf="!loading && pendingRequests.length === 0" class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h3>No Pending Requests</h3>
+    <p>All visitor requests have been reviewed and processed.</p>
+  </div>
+
+  <!-- Request Logs Table -->
+  <app-request-log-table
+    *ngIf="requestLogs.length > 0"
+    [logs]="requestLogs"
+    title="Request Activity Logs"
+  ></app-request-log-table>
+</div>

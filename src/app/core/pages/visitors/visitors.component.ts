@@ -36,8 +36,7 @@ export class VisitorsComponent implements OnInit {
   form!: FormGroup;
   requestForm!: FormGroup;
 
-  readonly CURRENT_USER_ID = 1;
-  // const CURRENT_USER_ID = this.authService.currentUserId;
+  readonly CURRENT_USER_ID = Number(localStorage.getItem('userId') || 0);
   private readonly API = `${environment.apiUrl}/api/visitors`;
 
   constructor(

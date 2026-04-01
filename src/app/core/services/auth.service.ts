@@ -19,17 +19,45 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
+  private unwrap<T = any>(raw: any): T {
+    if (!raw) return raw as T;
+    return (raw.data ?? raw.Data ?? raw.result ?? raw.Result ?? raw.value ?? raw.Value ?? raw) as T;
+  }
+
+  private read<T = any>(obj: any, camel: string, pascal: string): T | undefined {
+    return (obj?.[camel] ?? obj?.[pascal]) as T | undefined;
+  }
+
   // ── Login ────────────────────────────────────────────────────────────────
   login(email: string, password: string) {
-    return this.http.post<LoginResponse>(`${this.baseUrl}/login`, { email, password }).pipe(
-      tap(res => {
-        localStorage.setItem('token', res.token);
-        if (res.refreshToken) {
-          localStorage.setItem('refreshToken', res.refreshToken);
+    return this.http.post<any>(`${this.baseUrl}/login`, { email, password }).pipe(
+      tap(raw => {
+        const res = this.unwrap<any>(raw);
+
+        const token = this.read<string>(res, 'token', 'Token');
+        const refreshToken = this.read<string>(res, 'refreshToken', 'RefreshToken');
+        const userId = this.read<number>(res, 'userId', 'UserId');
+        const fullName = this.read<string>(res, 'fullName', 'FullName');
+        const role = this.read<string>(res, 'role', 'Role');
+
+        if (!token) {
+          throw new Error('Login response missing token.');
         }
-        localStorage.setItem('userId', res.userId.toString());
-        localStorage.setItem('fullName', res.fullName);
-        localStorage.setItem('role', res.role);
+
+        localStorage.setItem('token', token);
+        if (refreshToken) {
+          localStorage.setItem('refreshToken', refreshToken);
+        }
+
+        if (typeof userId === 'number' && !Number.isNaN(userId)) {
+          localStorage.setItem('userId', userId.toString());
+        }
+        if (fullName) {
+          localStorage.setItem('fullName', fullName);
+        }
+        if (role) {
+          localStorage.setItem('role', role.trim());
+        }
       })
     );
   }
@@ -78,6 +106,9 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) return false;
+    const normalized = token.trim().toLowerCase();
+    return normalized !== 'undefined' && normalized !== 'null' && normalized.length > 0;
   }
 }

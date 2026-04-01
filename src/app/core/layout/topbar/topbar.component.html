@@ -22,6 +22,14 @@
       </svg>
       <span class="badge">3</span>
     </button>
-    <div class="avatar">AK</div>
+    <div class="user-menu" (click)="$event.stopPropagation()">
+      <button class="avatar" type="button" (click)="toggleUserMenu()" aria-label="User menu">
+        {{ shortName }}
+      </button>
+      <div class="user-dropdown" *ngIf="isUserMenuOpen">
+        <div class="user-name">{{ fullName }}</div>
+        <button class="logout-btn" type="button" (click)="logout()">Logout</button>
+      </div>
+    </div>
   </div>
 </header>

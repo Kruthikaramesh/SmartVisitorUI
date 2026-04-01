@@ -69,9 +69,18 @@ export class LoginComponent implements OnInit {
     this.authService.login(email, password).subscribe({
       next: () => {
         this.loading = false;
+        const role = (localStorage.getItem('role') || '').trim().toLowerCase();
+        const isAdmin = role === 'admin';
+        const isSecurity = role === 'security' || role === 'security guard';
+
         const target = this.visitorAction === 'check-out'
           ? ['/verification']
-          : ['/visitors'];
+          : isAdmin
+            ? ['/dashboard/admin']
+            : isSecurity
+              ? ['/dashboard/security']
+              : ['/dashboard/user'];
+
         this.router.navigate(target);
       },
       error: (err: HttpErrorResponse) => {

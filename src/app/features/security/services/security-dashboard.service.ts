@@ -34,7 +34,7 @@ export interface VerificationResult {
   providedIn: 'root'
 })
 export class SecurityDashboardService {
-  private readonly currentUserId = 1;
+  private readonly currentUserId = Number(localStorage.getItem('userId') || 0);
   private readonly scanApi = `${environment.apiUrl}/api/scan`;
   private readonly visitLogsApi = `${environment.apiUrl}/api/visit-logs`;
 

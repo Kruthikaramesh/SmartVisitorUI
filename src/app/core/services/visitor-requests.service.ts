@@ -22,6 +22,10 @@ export class VisitorRequestService {
     return this.http.get<any>(this.API);
   }
 
+  getMine(requestedBy: number): Observable<any> {
+    return this.http.get<any>(`${this.API}/mine/${requestedBy}`);
+  }
+
   getById(id: number): Observable<any> {
     return this.http.get<any>(`${this.API}/${id}`);
   }

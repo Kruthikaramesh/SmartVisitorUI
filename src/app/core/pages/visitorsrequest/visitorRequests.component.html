@@ -4,7 +4,9 @@
   <div class="vp-header">
     <div class="vp-title-group">
       <h1 class="vp-title">Visitor Requests</h1>
-      <p class="vp-subtitle">Review, approve and manage access requests</p>
+      <p class="vp-subtitle">
+        {{ isAdmin ? 'Review, approve and manage access requests' : 'Track your visitor request approval status' }}
+      </p>
     </div>
   </div>
 
@@ -104,7 +106,7 @@
           <th>Purpose</th>
           <th>Valid Period</th>
           <th>Status</th>
-          <th class="th-actions">Actions</th>
+          <th class="th-actions" *ngIf="isAdmin">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -154,7 +156,7 @@
           </td>
 
           <!-- Actions -->
-          <td>
+          <td *ngIf="isAdmin">
             <div class="action-btns">
               <!-- Update Status -->
               <button class="act-btn act-status" (click)="openStatus(r)" title="Update Status">

@@ -123,10 +123,16 @@
   justify-content: center;
 }
 
+.user-menu {
+  position: relative;
+  margin-left: 4px;
+}
+
 .avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
+  border: none;
   background: var(--accent);
   color: #fff;
   font-size: 12px;
@@ -135,6 +141,42 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin-left: 4px;
   font-family: 'Syne', sans-serif;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  min-width: 180px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.logout-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #b42318;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.logout-btn:hover {
+  background: #fff5f4;
 }

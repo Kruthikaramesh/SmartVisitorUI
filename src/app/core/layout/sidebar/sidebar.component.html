@@ -5,7 +5,7 @@
       <ng-container *ngFor="let item of navItems">
 
         <!-- Item with children -->
-        <li *ngIf="item.children; else simple">
+        <li *ngIf="item.children && canViewMenuItem(item.roles); else simple">
           <button class="nav-link parent-link"
                   [class.open]="isExpanded(item.label)"
                   (click)="toggle(item.label)"
@@ -17,17 +17,19 @@
             </svg>
           </button>
           <ul class="submenu" [class.submenu-open]="isExpanded(item.label) && !collapsed">
-            <li *ngFor="let child of item.children">
-              <a [routerLink]="child.route" routerLinkActive="sub-active" class="sub-link">
-                <span class="sub-dot"></span>{{ child.label }}
-              </a>
-            </li>
+            <ng-container *ngFor="let child of item.children">
+              <li *ngIf="canViewMenuItem(child.roles)">
+                <a [routerLink]="child.route" routerLinkActive="sub-active" class="sub-link">
+                  <span class="sub-dot"></span>{{ child.label }}
+                </a>
+              </li>
+            </ng-container>
           </ul>
         </li>
 
         <!-- Simple item -->
         <ng-template #simple>
-          <li>
+          <li *ngIf="canViewMenuItem(item.roles)">
             <a [routerLink]="item.route" routerLinkActive="nav-active" class="nav-link" [title]="collapsed ? item.label : ''">
               <span class="nav-icon" [innerHTML]="item.icon"></span>
               <span class="nav-label">{{ item.label }}</span>
@@ -41,10 +43,10 @@
 
   <div class="sidebar-footer" *ngIf="!collapsed">
     <div class="user-card">
-      <div class="user-avatar">AK</div>
+      <div class="user-avatar">{{ (userRole || 'U').charAt(0).toUpperCase() }}</div>
       <div class="user-info">
-        <span class="user-name">Alex Kumar</span>
-        <span class="user-role">Administrator</span>
+        <span class="user-name">{{ userFullName }}</span>
+        <span class="user-role">{{ userRole || 'User' }}</span>
       </div>
     </div>
   </div>

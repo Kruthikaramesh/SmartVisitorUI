@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { map } from 'rxjs';
+import { interval, map, startWith, switchMap } from 'rxjs';
 import {
   ScanLog,
   SecurityDashboardService,
@@ -17,30 +17,37 @@ import {
 export class SecurityDashboardComponent {
   private readonly securityService = inject(SecurityDashboardService);
 
-  readonly kpis$ = this.securityService.getKpis();
-  readonly logs$ = this.securityService.getLogs();
+  readonly logs$ = interval(5000).pipe(
+    startWith(0),
+    switchMap(() => this.securityService.getLogs())
+  );
+
+  readonly kpis$ = this.logs$.pipe(
+    map((logs: ScanLog[]): SecurityKpi => ({
+      totalVisitors: logs.length,
+      totalApproved: logs.filter((log) => log.status === 'approved').length,
+      totalExpired: logs.filter((log) => log.status === 'expired').length,
+      totalDenied: logs.filter((log) => log.status === 'denied').length
+    }))
+  );
 
   readonly kpiCards$ = this.kpis$.pipe(
     map((kpi: SecurityKpi) => [
       {
         label: 'Total Visitors',
-        value: kpi.totalVisitors,
-        tone: 'tone-a'
+        value: kpi.totalVisitors
       },
       {
         label: 'Total Approved',
-        value: kpi.totalApproved,
-        tone: 'tone-b'
+        value: kpi.totalApproved
       },
       {
         label: 'Expired',
-        value: kpi.totalExpired,
-        tone: 'tone-c'
+        value: kpi.totalExpired
       },
       {
         label: 'Denied',
-        value: kpi.totalDenied,
-        tone: 'tone-d'
+        value: kpi.totalDenied
       }
     ])
   );

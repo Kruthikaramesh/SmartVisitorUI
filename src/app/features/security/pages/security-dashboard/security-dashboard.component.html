@@ -7,20 +7,7 @@
   </div>
 
   <div class="stats-row" *ngIf="kpiCards$ | async as cards">
-    <div class="stat-card" *ngFor="let card of cards" [ngClass]="card.tone">
-      <div class="stat-icon" [ngClass]="{
-        'stat-icon--indigo': card.tone === 'tone-a',
-        'stat-icon--teal': card.tone === 'tone-b',
-        'stat-icon--amber': card.tone === 'tone-c',
-        'stat-icon--rose': card.tone === 'tone-d'
-      }">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path *ngIf="card.tone === 'tone-a'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12h18M3 6h18M3 18h18" />
-          <path *ngIf="card.tone === 'tone-b'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" />
-          <path *ngIf="card.tone === 'tone-c'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          <path *ngIf="card.tone === 'tone-d'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
-        </svg>
-      </div>
+    <div class="stat-card" *ngFor="let card of cards">
       <div class="stat-body">
         <span class="stat-value">{{ card.value }}</span>
         <span class="stat-label">{{ card.label }}</span>

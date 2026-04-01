@@ -36,8 +36,9 @@ export class VisitorRequestsComponent implements OnInit {
 
   statusForm!: FormGroup;
 
-  readonly CURRENT_USER_ID = 1;
-  // Replace with: this.authService.currentUserId
+  readonly CURRENT_USER_ID = Number(localStorage.getItem('userId') || 0);
+  readonly currentUserRole = localStorage.getItem('role') || '';
+  readonly isAdmin = this.currentUserRole === 'Admin';
 
   readonly STATUS_OPTIONS = [
     { id: 1, label: 'Pending', color: 'status--pending' },
@@ -85,7 +86,12 @@ export class VisitorRequestsComponent implements OnInit {
   load() {
     this.loading = true;
     this.cdr.detectChanges();
-    this.requestService.getAll().subscribe({
+
+    const request$ = this.isAdmin
+      ? this.requestService.getAll()
+      : this.requestService.getMine(this.CURRENT_USER_ID);
+
+    request$.subscribe({
       next: raw => this.zone.run(() => {
         this.requests = this.toArray(raw);
         this.apply();
@@ -120,6 +126,11 @@ export class VisitorRequestsComponent implements OnInit {
 
   // ── Status Modal ──────────────────────────────────────────────────
   openStatus(r: VisitorRequest) {
+    if (!this.isAdmin) {
+      this.notify('Only admin can update request status.', false);
+      return;
+    }
+
     this.modalMode = 'status';
     this.selected = r;
     this.formError = '';
@@ -127,6 +138,11 @@ export class VisitorRequestsComponent implements OnInit {
   }
 
   submitStatus() {
+    if (!this.isAdmin) {
+      this.notify('Only admin can update request status.', false);
+      return;
+    }
+
     if (this.statusForm.invalid || !this.selected) { this.statusForm.markAllAsTouched(); return; }
     this.formLoading = true;
     this.formError = '';
@@ -164,6 +180,11 @@ export class VisitorRequestsComponent implements OnInit {
 
   // ── QR Modal ──────────────────────────────────────────────────────
   openQR(r: VisitorRequest) {
+    if (!this.isAdmin) {
+      this.notify('Only admin can generate QR codes.', false);
+      return;
+    }
+
     this.modalMode = 'qr';
     this.selected = r;
     this.qrImage = null;
@@ -190,7 +211,14 @@ export class VisitorRequestsComponent implements OnInit {
   }
 
   // ── Delete ────────────────────────────────────────────────────────
-  confirmDelete(r: VisitorRequest) { this.deleteTarget = r; this.cdr.detectChanges(); }
+  confirmDelete(r: VisitorRequest) {
+    if (!this.isAdmin) {
+      this.notify('Only admin can remove requests.', false);
+      return;
+    }
+    this.deleteTarget = r;
+    this.cdr.detectChanges();
+  }
   cancelDelete() { this.deleteTarget = null; this.cdr.detectChanges(); }
 
   doDelete() {

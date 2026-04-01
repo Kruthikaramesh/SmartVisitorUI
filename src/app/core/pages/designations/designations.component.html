@@ -1,0 +1,214 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Designations</h1>
+      <p class="page-sub">Manage job designations across your organisation</p>
+    </div>
+    <button class="btn-primary" (click)="openCreate()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Designation
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon si-indigo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-val">{{ designations.length }}</span>
+        <span class="stat-lbl">Total</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-green">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-val">{{ activeCount() }}</span>
+        <span class="stat-lbl">Active</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon si-red">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M4 7h16" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-val">{{ deletedCount() }}</span>
+        <span class="stat-lbl">Deleted</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-ico" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+      </svg>
+      <input class="search-input" type="text" placeholder="Search designation…" (input)="onSearch($event)" />
+    </div>
+    <span class="result-pill" *ngIf="!loading">{{ filtered.length }} result{{ filtered.length !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Skeleton -->
+  <div class="table-card" *ngIf="loading">
+    <div class="skel-wrap">
+      <div class="skel-row" *ngFor="let i of [1,2,3,4,5]">
+        <div class="sk sk-line sk-w40"></div>
+        <div class="sk sk-line sk-w20"></div>
+        <div class="sk sk-line sk-w30"></div>
+        <div class="sk sk-pill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty -->
+  <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+    <div class="empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    </div>
+    <h3 class="empty-title">{{ searchQuery ? 'No results found' : 'No designations yet' }}</h3>
+    <p class="empty-text">{{ searchQuery ? 'Try a different search.' : 'Add your first designation to get started.' }}</p>
+    <button class="btn-primary" *ngIf="!searchQuery" (click)="openCreate()">Add Designation</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card" *ngIf="!loading && filtered.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Designation Name</th>
+          <th>Created By</th>
+          <th>Created At</th>
+          <th>Status</th>
+          <th class="th-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of filtered; let i = index" class="tr" [style.animation-delay]="(i*35)+'ms'">
+          <td class="td-idx">{{ i + 1 }}</td>
+          <td>
+            <div class="desig-cell">
+              <div class="desig-badge">{{ d.designationName[0] }}</div>
+              <span class="desig-name">{{ d.designationName }}</span>
+            </div>
+          </td>
+          <td class="td-muted">{{ d.createdByName || '—' }}</td>
+          <td class="td-date">{{ d.createdAt | date:'dd MMM yyyy' }}</td>
+          <td>
+            <span class="status-badge" [class.status-active]="!d.isDeleted" [class.status-inactive]="d.isDeleted">
+              <span class="status-dot"></span>
+              {{ d.isDeleted ? 'Deleted' : 'Active' }}
+            </span>
+          </td>
+          <td>
+            <div class="act-btns">
+              <button class="act-btn act-edit" (click)="openEdit(d)" title="Edit" [disabled]="d.isDeleted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 15.414 9 16l.586-3z" />
+                </svg>
+              </button>
+              <button class="act-btn act-del" (click)="confirmDelete(d)" title="Delete" [disabled]="d.isDeleted">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create / Edit Modal -->
+<div class="backdrop" *ngIf="modalMode" (click)="closeModal()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-hdr">
+      <div class="modal-title-grp">
+        <div class="modal-ico" [class.modal-ico--edit]="modalMode==='edit'">
+          <svg *ngIf="modalMode==='create'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          <svg *ngIf="modalMode==='edit'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 012.828 0l.172.172a2 2 0 010 2.828L12 15.414 9 16l.586-3z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="modal-title">{{ modalMode === 'create' ? 'Add Designation' : 'Edit Designation' }}</h2>
+          <p class="modal-sub">{{ modalMode === 'create' ? 'Enter the designation name' : 'Update designation name' }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="modal-body" novalidate>
+      <div class="field" [class.field-err]="f['designationName'].invalid && f['designationName'].touched">
+        <label class="flbl">Designation Name <span class="req">*</span></label>
+        <input class="finput" formControlName="designationName" placeholder="e.g. Senior Engineer" />
+        <span class="ferr" *ngIf="f['designationName'].touched && f['designationName'].errors?.['required']">Name is required.</span>
+        <span class="ferr" *ngIf="f['designationName'].touched && f['designationName'].errors?.['pattern']">Only letters and spaces allowed.</span>
+        <span class="ferr" *ngIf="f['designationName'].touched && f['designationName'].errors?.['maxlength']">Max 100 characters.</span>
+      </div>
+
+      <div class="server-err" *ngIf="formError">{{ formError }}</div>
+
+      <div class="modal-ftr">
+        <button type="button" class="btn-ghost" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="formLoading">
+          <span class="spinner spinner-sm spinner-white" *ngIf="formLoading"></span>
+          {{ modalMode === 'create' ? 'Create' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div class="backdrop" *ngIf="deleteTarget" (click)="cancelDelete()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-hdr">
+      <h2 class="modal-title modal-title--danger">Delete Designation</h2>
+    </div>
+    <div class="modal-body">
+      <p class="del-msg">Delete <strong>{{ deleteTarget.designationName }}</strong>? This is a soft delete — it can be recovered from the database.</p>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-ghost" (click)="cancelDelete()">Cancel</button>
+      <button class="btn-danger" (click)="doDelete()" [disabled]="deleteLoading">
+        <span class="spinner spinner-sm spinner-white" *ngIf="deleteLoading"></span>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" [class.toast-err]="!toast.ok" *ngIf="toast">
+  <svg *ngIf="toast.ok" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+  </svg>
+  <svg *ngIf="!toast.ok" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+  {{ toast.msg }}
+</div>

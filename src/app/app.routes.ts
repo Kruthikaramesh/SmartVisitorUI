@@ -5,6 +5,7 @@ import { ForgotPasswordComponent } from './features/auth/pages/forgot-password/f
 import { VerifyOtpComponent } from './features/auth/pages/verify-otp/verify-otp.component';
 import { ResetPasswordComponent } from './features/auth/pages/reset-password/reset-password.component';
 import { LayoutComponent } from './core/layout/layout/layout.component';
+import { AdminGuard, SecurityGuard, UserGuard, AdminOrUserGuard } from './core/guards/role.guard';
 
 export const routes: Routes = [
   // ── Public pages ───────────────────────────────────────────────────────────
@@ -24,19 +25,52 @@ export const routes: Routes = [
     path: '',
     component: LayoutComponent,
     children: [
+      // ── Dashboards ────────────────────────────────────────────────────────
+      {
+        path: 'dashboard/admin',
+        canActivate: [AdminGuard],
+        loadComponent: () =>
+          import('./core/pages/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent)
+      },
+      {
+        path: 'dashboard/user',
+        canActivate: [UserGuard],
+        loadComponent: () =>
+          import('./core/pages/user-dashboard/user-dashboard.component').then(m => m.UserDashboardComponent)
+      },
+      {
+        path: 'dashboard/security',
+        canActivate: [SecurityGuard],
+        loadComponent: () =>
+          import('./features/security/pages/security-dashboard/security-dashboard.component').then(m => m.SecurityDashboardComponent)
+      },
+
+      // ── Content Pages ─────────────────────────────────────────────────────
       {
         path: 'visitors',
+        canActivate: [AdminOrUserGuard],
         loadComponent: () =>
           import('./../app/core/pages/visitors/visitors.component').then(m => m.VisitorsComponent)
       },
       {
         path: 'visitorsrequest',
+        canActivate: [AdminOrUserGuard],
         loadComponent: () =>
           import('./../app/core/pages/visitorsrequest/visitorRequests.component')
             .then(m => m.VisitorRequestsComponent)
       },
       {
+        path: 'users',
+        canActivate: [AdminGuard],
+        loadComponent: () => import('./core/pages/users/users.component').then(m => m.UsersComponent)
+      },
+      {
+        path: 'designations',
+        loadComponent: () => import('./core/pages/designations/designations.component').then(m => m.DesignationsComponent)
+      },
+      {
         path: 'verification',
+        canActivate: [SecurityGuard],
         loadComponent: () =>
           import('./../app/core/pages/verification/verification.component')
             .then(m => m.VerificationComponent)

@@ -1,51 +1,65 @@
-<section class="dashboard-wrap">
-  <header class="dashboard-head">
-    <h1>Security Dashboard</h1>
-    <p>Live visitor movement, approvals, expiries, and complete scan visibility.</p>
-  </header>
-
-  <div class="kpi-grid" *ngIf="kpiCards$ | async as cards">
-    <article class="kpi-card" [ngClass]="card.tone" *ngFor="let card of cards">
-      <p class="kpi-label">{{ card.label }}</p>
-      <h2 class="kpi-value">{{ card.value }}</h2>
-    </article>
+<div class="vp">
+  <div class="vp-header">
+    <div class="vp-title-group">
+      <h1 class="vp-title">Security Dashboard</h1>
+      <p class="vp-subtitle">Monitor live scan activity, approvals, and denied entries in one place</p>
+    </div>
   </div>
 
-  <section class="logs-card">
-    <div class="logs-head">
-      <h3>Scan Logs</h3>
-      <p>Every QR validation captured with source and status.</p>
+  <div class="stats-row" *ngIf="kpiCards$ | async as cards">
+    <div class="stat-card" *ngFor="let card of cards" [ngClass]="card.tone">
+      <div class="stat-icon" [ngClass]="{
+        'stat-icon--indigo': card.tone === 'tone-a',
+        'stat-icon--teal': card.tone === 'tone-b',
+        'stat-icon--amber': card.tone === 'tone-c',
+        'stat-icon--rose': card.tone === 'tone-d'
+      }">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path *ngIf="card.tone === 'tone-a'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 12h18M3 6h18M3 18h18" />
+          <path *ngIf="card.tone === 'tone-b'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" />
+          <path *ngIf="card.tone === 'tone-c'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path *ngIf="card.tone === 'tone-d'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-value">{{ card.value }}</span>
+        <span class="stat-label">{{ card.label }}</span>
+      </div>
     </div>
+  </div>
 
-    <div class="logs-table-wrap" *ngIf="logs$ | async as logs">
-      <table class="logs-table">
-        <thead>
-          <tr>
-            <th>Log ID</th>
-            <th>Visitor</th>
-            <th>Token</th>
-            <th>Source</th>
-            <th>Status</th>
-            <th>Scanned By</th>
-            <th>Scanned At</th>
-            <th>Remarks</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let log of logs; trackBy: trackByLogId">
-            <td>#{{ log.id }}</td>
-            <td>{{ log.visitorName }}</td>
-            <td>{{ log.token }}</td>
-            <td class="source-cell">{{ log.source | titlecase }}</td>
-            <td>
-              <span class="status" [ngClass]="log.status">{{ log.status | titlecase }}</span>
-            </td>
-            <td>{{ log.scannedBy }}</td>
-            <td>{{ log.scannedAt | date: 'd MMM y, h:mm a' }}</td>
-            <td>{{ log.remarks || 'No remarks' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-</section>
+  <div class="toolbar" *ngIf="logs$ | async as logs">
+    <span class="result-count">{{ logs.length }} total log{{ logs.length !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <div class="table-card" *ngIf="logs$ | async as logs">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Log ID</th>
+          <th>Visitor</th>
+          <th>Token</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Scanned By</th>
+          <th>Scanned At</th>
+          <th>Remarks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs; trackBy: trackByLogId" class="tr">
+          <td class="mono">#{{ log.id }}</td>
+          <td>{{ log.visitorName }}</td>
+          <td class="mono">{{ log.token }}</td>
+          <td><span class="chip chip-source">{{ log.source | titlecase }}</span></td>
+          <td>
+            <span class="status" [ngClass]="log.status">{{ log.status | titlecase }}</span>
+          </td>
+          <td>{{ log.scannedBy }}</td>
+          <td class="td-date">{{ log.scannedAt | date: 'dd MMM yyyy, h:mm a' }}</td>
+          <td>{{ log.remarks || 'No remarks' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

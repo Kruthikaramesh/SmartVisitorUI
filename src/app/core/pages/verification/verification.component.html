@@ -1,8 +1,8 @@
 <div class="vp">
   <div class="vp-header">
     <div class="vp-title-group">
-      <h1 class="vp-title">QR Scanner</h1>
-      <p class="vp-subtitle">Use camera or image upload to extract a QR token and verify entry</p>
+      <h1 class="vp-title">QR Verification</h1>
+      <p class="vp-subtitle">Verify visitor access by token, uploaded QR image, or live camera scan</p>
     </div>
     <button class="btn-primary" type="button" (click)="verify()">Verify Access</button>
   </div>
@@ -41,7 +41,7 @@
       <span class="result-count">Mode: {{ mode | titlecase }}</span>
     </div>
 
-    <div class="scanner-grid">
+    <div class="scanner-grid" [class.scanner-grid--upload]="mode === 'upload'">
       <div class="scanner-left">
         <ng-container [ngSwitch]="mode">
           <section *ngSwitchCase="'token'" class="mode-pane">
@@ -72,7 +72,7 @@
         <p class="extract-message" *ngIf="extractMessage">{{ extractMessage }}</p>
       </div>
 
-      <aside class="preview-panel">
+      <aside class="preview-panel" *ngIf="mode === 'upload'">
         <h3 class="panel-title">Upload Preview</h3>
         <div class="preview-box" *ngIf="uploadedPreviewUrl; else noPreview">
           <img [src]="uploadedPreviewUrl" alt="Uploaded QR preview" />
@@ -80,13 +80,13 @@
         <ng-template #noPreview>
           <div class="preview-empty">No image uploaded yet</div>
         </ng-template>
-
-        <div class="info-stack">
-          <p><strong>Verification:</strong> {{ verificationResult?.title || 'Waiting for verification' }}</p>
-          <p><strong>Details:</strong> {{ verificationResult?.details || 'Scan with camera or upload an image to extract token' }}</p>
-          <p><strong>Check-in:</strong> {{ verificationResult?.checkinMessage || 'Successful scans are logged instantly.' }}</p>
-        </div>
       </aside>
+    </div>
+
+    <div class="info-stack">
+      <p><strong>Verification:</strong> {{ verificationResult?.title || 'Waiting for verification' }}</p>
+      <p><strong>Details:</strong> {{ verificationResult?.details || 'Scan with camera or upload an image to extract token' }}</p>
+      <p><strong>Check-in:</strong> {{ verificationResult?.checkinMessage || 'Successful scans are logged instantly.' }}</p>
     </div>
   </div>
 </div>

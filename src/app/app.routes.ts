@@ -4,9 +4,6 @@ import { LoginComponent } from './features/auth/pages/login/login.component';
 import { ForgotPasswordComponent } from './features/auth/pages/forgot-password/forgot-password.component';
 import { VerifyOtpComponent } from './features/auth/pages/verify-otp/verify-otp.component';
 import { ResetPasswordComponent } from './features/auth/pages/reset-password/reset-password.component';
-import { SecurityShellComponent } from './features/security/components/security-shell.component';
-import { SecurityDashboardComponent } from './features/security/pages/security-dashboard/security-dashboard.component';
-import { SecurityQrScannerComponent } from './features/security/pages/security-qr-scanner/security-qr-scanner.component';
 import { LayoutComponent } from './core/layout/layout/layout.component';
 
 export const routes: Routes = [
@@ -14,15 +11,7 @@ export const routes: Routes = [
   { path: '', component: WelcomePageComponent },
   { path: 'check-in', component: LoginComponent },
   { path: 'check-out', component: LoginComponent },
-  {
-    path: 'security',
-    component: SecurityShellComponent,
-    children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: SecurityDashboardComponent },
-      { path: 'qr-scanner', component: SecurityQrScannerComponent }
-    ]
-  },
+  { path: 'dashboard', redirectTo: 'visitors', pathMatch: 'full' },
 
   //// ── Auth flow ──────────────────────────────────────────────────────────────
   { path: 'auth/login', component: LoginComponent },
@@ -46,8 +35,14 @@ export const routes: Routes = [
           import('./../app/core/pages/visitorsrequest/visitorRequests.component')
             .then(m => m.VisitorRequestsComponent)
       },
+      {
+        path: 'verification',
+        loadComponent: () =>
+          import('./../app/core/pages/verification/verification.component')
+            .then(m => m.VerificationComponent)
+      },
       // Default redirect for the layout
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+      { path: '', redirectTo: 'visitors', pathMatch: 'full' }
     ]
   },
 

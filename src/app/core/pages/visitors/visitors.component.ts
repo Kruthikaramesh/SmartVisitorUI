@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Visitor } from '../../../shared/models/visitor.model';
 import { VisitorRequestService } from '../../services/visitor-requests.service';
 import { CreateVisitorRequestDto } from '../../../shared/models/visitor-request.model';
+import { environment } from '../../../../environment/environment';
 
 type ModalMode = 'create' | 'edit' | 'request' | null;
 
@@ -37,7 +38,7 @@ export class VisitorsComponent implements OnInit {
 
   readonly CURRENT_USER_ID = 1;
   // const CURRENT_USER_ID = this.authService.currentUserId;
-  private readonly API = 'https://localhost:7162/api/visitors';
+  private readonly API = `${environment.apiUrl}/api/visitors`;
 
   constructor(
     private http: HttpClient,

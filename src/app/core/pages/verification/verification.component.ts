@@ -3,15 +3,16 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  inject,
   OnDestroy,
-  ViewChild
+  ViewChild,
+  inject
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   SecurityDashboardService,
   VerificationResult
-} from '../../services/security-dashboard.service';
+} from '../../../features/security/services/security-dashboard.service';
+import jsQR from 'jsqr';
 
 type ScanMode = 'token' | 'camera' | 'upload';
 
@@ -20,15 +21,15 @@ interface BarcodeDetectorLike {
 }
 
 @Component({
-  selector: 'app-security-qr-scanner',
+  selector: 'app-verification',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './security-qr-scanner.component.html',
-  styleUrls: ['./security-qr-scanner.component.css']
+  templateUrl: './verification.component.html',
+  styleUrls: ['./verification.component.css']
 })
-export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
+export class VerificationComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
-  private readonly securityService = inject(SecurityDashboardService);
+  private readonly verificationService = inject(SecurityDashboardService);
 
   @ViewChild('videoEl') videoEl?: ElementRef<HTMLVideoElement>;
 
@@ -37,6 +38,7 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
   uploadedFileName = '';
   uploadedPreviewUrl = '';
   verificationResult?: VerificationResult;
+
   cameraSupported =
     typeof navigator !== 'undefined' &&
     !!navigator.mediaDevices &&
@@ -49,6 +51,7 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
 
   private stream?: MediaStream;
   private frameScanHandle = 0;
+  private readonly scanCanvas = document.createElement('canvas');
 
   ngAfterViewInit(): void {
     if (this.mode === 'camera') {
@@ -66,7 +69,8 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
     this.extractMessage = '';
 
     if (mode === 'camera') {
-      this.startCamera();
+      // Wait for ngSwitch to render the video element before starting camera.
+      setTimeout(() => this.startCamera(), 0);
       return;
     }
 
@@ -81,7 +85,7 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
     }
 
     const remarks = this.form.controls.remarks.value?.trim() || '';
-    this.securityService.verifyToken(token, remarks, this.mode).subscribe({
+    this.verificationService.verifyToken(token, remarks, this.mode).subscribe({
       next: (result) => {
         this.verificationResult = result;
         this.extractMessage = `Token ${result.token} verified from ${this.mode} mode.`;
@@ -126,13 +130,6 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private revokePreview(): void {
-    if (this.uploadedPreviewUrl) {
-      URL.revokeObjectURL(this.uploadedPreviewUrl);
-      this.uploadedPreviewUrl = '';
-    }
-  }
-
   private async startCamera(): Promise<void> {
     if (!this.cameraSupported || !this.videoEl) {
       return;
@@ -141,10 +138,17 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
     this.stopCamera();
 
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-        audio: false
-      });
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' } },
+          audio: false
+        });
+      } catch {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        });
+      }
 
       const video = this.videoEl.nativeElement;
       video.srcObject = this.stream;
@@ -190,19 +194,19 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
   private async readBarcodeFromSource(source: CanvasImageSource): Promise<string | null> {
     const detector = this.createBarcodeDetector();
 
-    if (!detector) {
-      this.extractMessage =
-        'Auto QR extraction is not supported in this browser. Paste token manually.';
-      return null;
+    if (detector) {
+      try {
+        const codes = await detector.detect(source);
+        const first = codes.find((code) => !!code.rawValue)?.rawValue;
+        if (first) {
+          return first.trim();
+        }
+      } catch {
+        // Fall through to jsQR fallback.
+      }
     }
 
-    try {
-      const codes = await detector.detect(source);
-      const first = codes.find((code) => !!code.rawValue)?.rawValue;
-      return first ? first.trim() : null;
-    } catch {
-      return null;
-    }
+    return this.decodeWithJsQr(source);
   }
 
   private createBarcodeDetector(): BarcodeDetectorLike | null {
@@ -214,6 +218,56 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
     }
 
     return new detectorCtor({ formats: ['qr_code'] } as any);
+  }
+
+  private decodeWithJsQr(source: CanvasImageSource): string | null {
+    const canvas = this.scanCanvas;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!context) {
+      return null;
+    }
+
+    const dimensions = this.getSourceDimensions(source);
+    if (!dimensions || dimensions.width === 0 || dimensions.height === 0) {
+      return null;
+    }
+
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+    context.drawImage(source, 0, 0, dimensions.width, dimensions.height);
+
+    const imageData = context.getImageData(0, 0, dimensions.width, dimensions.height);
+    const result = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'attemptBoth'
+    });
+
+    return result?.data?.trim() || null;
+  }
+
+  private getSourceDimensions(source: CanvasImageSource): { width: number; height: number } | null {
+    if (source instanceof HTMLVideoElement) {
+      return {
+        width: source.videoWidth,
+        height: source.videoHeight
+      };
+    }
+
+    if (source instanceof HTMLImageElement) {
+      return {
+        width: source.naturalWidth || source.width,
+        height: source.naturalHeight || source.height
+      };
+    }
+
+    if (source instanceof HTMLCanvasElement) {
+      return {
+        width: source.width,
+        height: source.height
+      };
+    }
+
+    return null;
   }
 
   private fileToImage(file: File): Promise<HTMLImageElement> {
@@ -230,5 +284,12 @@ export class SecurityQrScannerComponent implements AfterViewInit, OnDestroy {
       reader.onerror = () => reject();
       reader.readAsDataURL(file);
     });
+  }
+
+  private revokePreview(): void {
+    if (this.uploadedPreviewUrl) {
+      URL.revokeObjectURL(this.uploadedPreviewUrl);
+      this.uploadedPreviewUrl = '';
+    }
   }
 }

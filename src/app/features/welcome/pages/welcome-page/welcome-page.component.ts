@@ -383,9 +383,9 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     setTimeout(() => this.renderer.removeChild(card, ripple), 800);
 
-    // ✅ navigate with the action as a query param
+    // Navigate with the selected action so login can route correctly.
     setTimeout(() => {
-      this.router.navigate(['/auth/login']);
+      this.router.navigate(['/auth/login'], { queryParams: { action: route } });
     }, 300);
   }
   /* ═══════════════════ BURST PARTICLES ═══════════════════ */

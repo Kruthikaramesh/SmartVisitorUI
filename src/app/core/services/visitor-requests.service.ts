@@ -7,13 +7,14 @@ import {
   UpdateRequestStatusDto,
   GenerateQrCodeRequestDto
 } from './../../shared/models/visitor-request.model';
+import { environment } from '../../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VisitorRequestService {
 
-  private readonly API = 'https://localhost:7162/api/visitorrequests';
+  private readonly API = `${environment.apiUrl}/api/visitorrequests`;
 
   constructor(private http: HttpClient) {}
 

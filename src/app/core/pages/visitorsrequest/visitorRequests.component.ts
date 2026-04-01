@@ -170,10 +170,13 @@ export class VisitorRequestsComponent implements OnInit {
     this.qrLoading = true;
     this.cdr.detectChanges();
 
-    const dto: GenerateQrCodeRequestDto = {};
+    const dto: GenerateQrCodeRequestDto = {
+      generatedBy: this.CURRENT_USER_ID,
+      regenerateIfExists: false
+    };
     this.requestService.generateQR(r.requestId, dto).subscribe({
       next: raw => this.zone.run(() => {
-        this.qrImage = raw?.data?.qrCodeBase64 ?? raw?.qrCodeBase64 ?? raw?.data ?? null;
+        this.qrImage = raw?.data?.qrImageBase64 ?? raw?.qrImageBase64 ?? null;
         this.qrLoading = false;
         this.cdr.detectChanges();
       }),

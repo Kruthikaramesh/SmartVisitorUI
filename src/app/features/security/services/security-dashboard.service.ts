@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../../../environment/environment';
+import { ApiResult } from '../../../shared/models/api-result.model';
 
 export interface SecurityKpi {
   totalVisitors: number;
@@ -31,112 +34,106 @@ export interface VerificationResult {
   providedIn: 'root'
 })
 export class SecurityDashboardService {
-  private readonly logsSubject = new BehaviorSubject<ScanLog[]>([
-    {
-      id: 901,
-      token: 'SV-ALPHA-77',
-      visitorName: 'Riya Verma',
-      source: 'camera',
-      status: 'approved',
-      scannedAt: '2026-03-29T08:15:00.000Z',
-      remarks: 'Board room meeting',
-      scannedBy: 'Gate A Security'
-    },
-    {
-      id: 902,
-      token: 'SV-BETA-98',
-      visitorName: 'Aman Khan',
-      source: 'token',
-      status: 'expired',
-      scannedAt: '2026-03-29T09:02:00.000Z',
-      remarks: 'Late arrival',
-      scannedBy: 'Gate A Security'
-    },
-    {
-      id: 903,
-      token: 'SV-GAMMA-52',
-      visitorName: 'Priya Singh',
-      source: 'upload',
-      status: 'denied',
-      scannedAt: '2026-03-29T10:47:00.000Z',
-      remarks: 'Token mismatch',
-      scannedBy: 'Gate B Security'
-    },
-    {
-      id: 904,
-      token: 'SV-DELTA-12',
-      visitorName: 'Nikhil Rao',
-      source: 'camera',
-      status: 'approved',
-      scannedAt: '2026-03-29T11:21:00.000Z',
-      remarks: 'Confirmed by host',
-      scannedBy: 'Gate A Security'
-    }
-  ]);
+  private readonly currentUserId = 1;
+  private readonly scanApi = `${environment.apiUrl}/api/scan`;
+  private readonly visitLogsApi = `${environment.apiUrl}/api/visit-logs`;
+
+  constructor(private http: HttpClient) { }
 
   getLogs(): Observable<ScanLog[]> {
-    return this.logsSubject.asObservable();
+    return this.http.get<ApiResult<VisitLogApiDto[]>>(this.visitLogsApi).pipe(
+      map(res => (res?.data ?? []).map(log => this.mapVisitLog(log)))
+    );
   }
 
   getKpis(): Observable<SecurityKpi> {
-    return new Observable<SecurityKpi>((subscriber) => {
-      const emitKpis = () => {
-        const logs = this.logsSubject.value;
-        const kpis: SecurityKpi = {
-          totalVisitors: logs.length,
-          totalApproved: logs.filter((log) => log.status === 'approved').length,
-          totalExpired: logs.filter((log) => log.status === 'expired').length,
-          totalDenied: logs.filter((log) => log.status === 'denied').length
-        };
-
-        subscriber.next(kpis);
-      };
-
-      emitKpis();
-      const sub = this.logsSubject.subscribe(() => emitKpis());
-
-      return () => sub.unsubscribe();
-    });
+    return this.getLogs().pipe(
+      map(logs => ({
+        totalVisitors: logs.length,
+        totalApproved: logs.filter((log) => log.status === 'approved').length,
+        totalExpired: logs.filter((log) => log.status === 'expired').length,
+        totalDenied: logs.filter((log) => log.status === 'denied').length
+      }))
+    );
   }
 
-  verifyToken(payload: string, remarks: string, source: ScanLog['source']): VerificationResult {
-    const normalizedPayload = payload.trim().toUpperCase();
-    const now = new Date().toISOString();
+  verifyToken(payload: string, remarks: string, source: ScanLog['source']): Observable<VerificationResult> {
+    const normalizedPayload = payload.trim();
 
-    let status: VerificationResult['status'] = 'approved';
-    let title = 'Secure Verification';
-    let details = 'Token signature, request state, and host approval are valid.';
-    let checkinMessage = 'Instant check-in completed. Visitor may proceed.';
+    return this.http.post<ApiResult<ScanValidationResponseDto>>(`${this.scanApi}/validate`, {
+      qrPayload: normalizedPayload,
+      scannedBy: this.currentUserId,
+      remarks
+    }).pipe(
+      map(res => {
+        const result = res?.data;
+        const status = this.mapDecisionToStatus(result?.decision, result?.message);
+        const title = status === 'approved' ? 'Secure Verification' : 'Access Review Required';
+        const checkinMessage = status === 'approved'
+          ? 'Instant check-in completed. Visitor may proceed.'
+          : 'Check-in blocked. Please contact the host or admin.';
 
-    if (!normalizedPayload.startsWith('SV-')) {
-      status = 'denied';
-      details = 'Token is not recognized in SmartVisitor format.';
-      checkinMessage = 'Check-in blocked. Please request a fresh token.';
-    } else if (normalizedPayload.includes('EXP') || normalizedPayload.includes('BETA')) {
-      status = 'expired';
-      details = 'Token was valid earlier but has crossed its validity window.';
-      checkinMessage = 'Visitor requires host re-approval for entry.';
-    }
+        return {
+          status,
+          title,
+          details: result?.message ?? 'No response message from server.',
+          checkinMessage,
+          token: normalizedPayload,
+          source
+        } as VerificationResult;
+      })
+    );
+  }
 
-    const newLog: ScanLog = {
-      id: this.logsSubject.value.length + 901,
-      token: normalizedPayload,
-      visitorName: status === 'approved' ? 'Verified Visitor' : 'Unknown Visitor',
-      source,
-      status,
-      scannedAt: now,
-      remarks: remarks?.trim() || undefined,
-      scannedBy: 'Gate A Security'
-    };
-
-    this.logsSubject.next([newLog, ...this.logsSubject.value]);
-
+  private mapVisitLog(log: VisitLogApiDto): ScanLog {
+    const status = this.mapScanResultToStatus(log.scanResult);
     return {
+      id: log.logId,
+      token: `REQ-${log.requestId ?? 'NA'}`,
+      visitorName: log.visitorName ?? 'Unknown Visitor',
+      source: 'token',
       status,
-      title,
-      details,
-      checkinMessage,
-      token: normalizedPayload
+      scannedAt: log.scannedAt,
+      remarks: log.remarks ?? undefined,
+      scannedBy: log.scannedByName ?? `User ${log.scannedBy}`
     };
   }
+
+  private mapScanResultToStatus(scanResult: string): ScanLog['status'] {
+    const normalized = (scanResult || '').toLowerCase();
+    if (normalized.includes('expired')) return 'expired';
+    if (normalized.includes('allowed') || normalized.includes('approved')) return 'approved';
+    return 'denied';
+  }
+
+  private mapDecisionToStatus(decision?: string, message?: string): VerificationResult['status'] {
+    const d = (decision || '').toLowerCase();
+    const m = (message || '').toLowerCase();
+    if (d === 'allowed') return 'approved';
+    if (m.includes('expired') || m.includes('not active yet')) return 'expired';
+    return 'denied';
+  }
+}
+
+interface VisitLogApiDto {
+  logId: number;
+  requestId?: number;
+  scannedBy: number;
+  scannedByName?: string;
+  scanResult: string;
+  remarks?: string;
+  scannedAt: string;
+  visitorId?: number;
+  visitorName?: string;
+}
+
+interface ScanValidationResponseDto {
+  isAllowed: boolean;
+  decision: string;
+  message: string;
+  requestId?: number;
+  visitorId?: number;
+  visitorName?: string;
+  scannedAt: string;
+  visitLogId: number;
 }

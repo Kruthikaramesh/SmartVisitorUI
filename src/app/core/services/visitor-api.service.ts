@@ -16,7 +16,7 @@ export class VisitorApiService {
   }
 
   getById(id: number): Observable<ApiResult<Visitor>> {
-    return this.http.get<ApiResult<Visitor>>(`${this.base}/${id}`);
+    return this.http.get<ApiResult<Visitor>>(`${this.base}/by-id/${id}`);
   }
 
   create(dto: CreateVisitorDto): Observable<ApiResult<Visitor>> {

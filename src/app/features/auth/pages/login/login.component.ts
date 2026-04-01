@@ -37,7 +37,10 @@ export class LoginComponent implements OnInit {
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    this.visitorAction = this.route.snapshot.queryParamMap.get('action') ?? '';
+    this.visitorAction =
+      this.route.snapshot.queryParamMap.get('action')
+      ?? this.route.snapshot.routeConfig?.path
+      ?? '';
 
     // Show success banner if redirected after password reset
     this.resetSuccess = this.route.snapshot.queryParamMap.get('reset') === 'success';
@@ -66,7 +69,9 @@ export class LoginComponent implements OnInit {
     this.authService.login(email, password).subscribe({
       next: () => {
         this.loading = false;
-        const target = this.visitorAction === 'check-out' ? ['/check-out'] : ['/'];
+        const target = this.visitorAction === 'check-out'
+          ? ['/verification']
+          : ['/visitors'];
         this.router.navigate(target);
       },
       error: (err: HttpErrorResponse) => {

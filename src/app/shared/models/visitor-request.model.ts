@@ -27,5 +27,6 @@ export interface UpdateRequestStatusDto {
 }
 
 export interface GenerateQrCodeRequestDto {
-  // extend fields as your backend GenerateQrCodeRequestDto requires
+  generatedBy: number;
+  regenerateIfExists?: boolean;
 }

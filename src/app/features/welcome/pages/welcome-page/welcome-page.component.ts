@@ -385,7 +385,7 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // ✅ navigate with the action as a query param
     setTimeout(() => {
-      this.router.navigate(['/check-in'], { queryParams: { action: route } });
+      this.router.navigate(['/auth/login']);
     }, 300);
   }
   /* ═══════════════════ BURST PARTICLES ═══════════════════ */

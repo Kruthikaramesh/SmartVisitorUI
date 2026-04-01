@@ -83,7 +83,9 @@ export class VerifyOtpComponent implements OnInit {
     this.auth.forgotPassword({ email: this.email }).subscribe({
       next: () => {
         this.resending = false;
-        this.resendMsg = 'A new code has been sent to your email.';
+        setTimeout(() => {
+          this.resendMsg = 'A new code has been sent to your email.'; // ✅
+        });
         this.form.reset();
       },
       error: () => {

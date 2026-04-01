@@ -361,7 +361,7 @@
 .login-card {
   position: relative;
   z-index: 2;
-  width: 390px;
+  width: 480px;
   padding: 2.8rem 2.6rem;
   border-radius: 28px;
   background: var(--card-bg);
@@ -644,7 +644,7 @@
 
   .login-btn.btn-ready {
     background: linear-gradient(135deg, var(--blue) 0%, #1058c8 100%);
-    color: #fff;
+    color: #000000;
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(26,111,232,0.35);
   }

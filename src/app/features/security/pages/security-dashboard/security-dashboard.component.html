@@ -1,0 +1,51 @@
+<section class="dashboard-wrap">
+  <header class="dashboard-head">
+    <h1>Security Dashboard</h1>
+    <p>Live visitor movement, approvals, expiries, and complete scan visibility.</p>
+  </header>
+
+  <div class="kpi-grid" *ngIf="kpiCards$ | async as cards">
+    <article class="kpi-card" [ngClass]="card.tone" *ngFor="let card of cards">
+      <p class="kpi-label">{{ card.label }}</p>
+      <h2 class="kpi-value">{{ card.value }}</h2>
+    </article>
+  </div>
+
+  <section class="logs-card">
+    <div class="logs-head">
+      <h3>Scan Logs</h3>
+      <p>Every QR validation captured with source and status.</p>
+    </div>
+
+    <div class="logs-table-wrap" *ngIf="logs$ | async as logs">
+      <table class="logs-table">
+        <thead>
+          <tr>
+            <th>Log ID</th>
+            <th>Visitor</th>
+            <th>Token</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Scanned By</th>
+            <th>Scanned At</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of logs; trackBy: trackByLogId">
+            <td>#{{ log.id }}</td>
+            <td>{{ log.visitorName }}</td>
+            <td>{{ log.token }}</td>
+            <td class="source-cell">{{ log.source | titlecase }}</td>
+            <td>
+              <span class="status" [ngClass]="log.status">{{ log.status | titlecase }}</span>
+            </td>
+            <td>{{ log.scannedBy }}</td>
+            <td>{{ log.scannedAt | date: 'd MMM y, h:mm a' }}</td>
+            <td>{{ log.remarks || 'No remarks' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>

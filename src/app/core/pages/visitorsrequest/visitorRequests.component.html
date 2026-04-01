@@ -1,0 +1,324 @@
+<div class="vp">
+
+  <!-- Header — no "New Request" button, requests come from Visitors page -->
+  <div class="vp-header">
+    <div class="vp-title-group">
+      <h1 class="vp-title">Visitor Requests</h1>
+      <p class="vp-subtitle">Review, approve and manage access requests</p>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--indigo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-value">{{ requests.length }}</span>
+        <span class="stat-label">Total Requests</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--amber">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-value">{{ countByStatus('Pending') }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--teal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-value">{{ countByStatus('Approved') }}</span>
+        <span class="stat-label">Approved</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon--red">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-body">
+        <span class="stat-value">{{ countByStatus('Rejected') }}</span>
+        <span class="stat-label">Rejected</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+      </svg>
+      <input class="search-input" type="text" placeholder="Search by visitor, requester, purpose, status…" (input)="onSearch($event)" />
+    </div>
+    <span class="result-count" *ngIf="!loading">{{ filtered.length }} result{{ filtered.length !== 1 ? 's' : '' }}</span>
+  </div>
+
+  <!-- Skeleton Loading -->
+  <div class="table-card" *ngIf="loading">
+    <div class="skeleton-wrap">
+      <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
+        <div class="sk sk-circle"></div>
+        <div class="sk sk-line sk-w50"></div>
+        <div class="sk sk-line sk-w30"></div>
+        <div class="sk sk-line sk-w40"></div>
+        <div class="sk sk-line sk-w20"></div>
+        <div class="sk sk-line sk-w20"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+    <div class="empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    </div>
+    <h3 class="empty-title">{{ searchQuery ? 'No results found' : 'No requests yet' }}</h3>
+    <p class="empty-text">
+      {{ searchQuery ? 'Try a different search term.' : 'Requests are created from the Visitors page.' }}
+    </p>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card" *ngIf="!loading && filtered.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Visitor</th>
+          <th>Requested By</th>
+          <th>Purpose</th>
+          <th>Valid Period</th>
+          <th>Status</th>
+          <th class="th-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of filtered; let i = index" class="tr" [style.animation-delay]="(i * 35) + 'ms'">
+
+          <!-- Visitor -->
+          <td>
+            <div class="visitor-cell">
+              <div class="v-avatar" [style.background]="avatarBg(r.visitorName)">{{ initials(r.visitorName) }}</div>
+              <div class="v-info">
+                <span class="v-name">{{ r.visitorName }}</span>
+                <span class="v-email">{{ r.requestedAt | date:'dd MMM yyyy' }}</span>
+              </div>
+            </div>
+          </td>
+
+          <!-- Requested By -->
+          <td>
+            <div class="visitor-cell">
+              <div class="v-avatar v-avatar--sm" [style.background]="avatarBg(r.requestedByName)">{{ initials(r.requestedByName) }}</div>
+              <span class="v-name">{{ r.requestedByName }}</span>
+            </div>
+          </td>
+
+          <!-- Purpose -->
+          <td>
+            <span class="purpose-text" [title]="r.purpose">{{ r.purpose }}</span>
+          </td>
+
+          <!-- Valid Period -->
+          <td>
+            <div class="date-range">
+              <span class="date-from">{{ r.validFrom | date:'dd MMM' }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="date-arrow">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+              </svg>
+              <span class="date-to">{{ r.validTill | date:'dd MMM yyyy' }}</span>
+            </div>
+          </td>
+
+          <!-- Status -->
+          <td>
+            <span class="status-badge" [ngClass]="statusClass(r.status)">
+              <span class="status-dot"></span>
+              {{ r.status }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <div class="action-btns">
+              <!-- Update Status -->
+              <button class="act-btn act-status" (click)="openStatus(r)" title="Update Status">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1 1 19 5.636" />
+                </svg>
+              </button>
+              <!-- Generate QR — only enabled for Approved -->
+              <button class="act-btn act-qr" (click)="openQR(r)" title="Generate QR Code" [disabled]="r.status !== 'Approved'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                </svg>
+              </button>
+              <!-- Remove -->
+              <button class="act-btn act-del" (click)="confirmDelete(r)" title="Remove">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ── Update Status Modal ───────────────────────────────── -->
+<div class="backdrop" *ngIf="modalMode === 'status'" (click)="closeModal()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-icon modal-icon--amber">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1 1 19 5.636" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="modal-title">Update Status</h2>
+          <p class="modal-sub">{{ selected?.visitorName }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form [formGroup]="statusForm" (ngSubmit)="submitStatus()" class="modal-body" novalidate>
+      <div class="form-grid form-grid--single">
+
+        <div class="field" [class.field-error]="sf['statusId'].invalid && sf['statusId'].touched">
+          <label class="field-label">New Status <span class="req">*</span></label>
+          <div class="status-radio-group">
+            <label *ngFor="let opt of STATUS_OPTIONS" class="status-radio-card" [class.status-radio-card--active]="sf['statusId'].value == opt.id">
+              <input type="radio" formControlName="statusId" [value]="opt.id" hidden />
+              <span class="status-badge" [ngClass]="opt.color">
+                <span class="status-dot"></span>{{ opt.label }}
+              </span>
+            </label>
+          </div>
+          <span class="err-msg" *ngIf="sf['statusId'].touched && sf['statusId'].errors?.['required']">Please select a status.</span>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Remarks</label>
+          <textarea class="field-input field-textarea" formControlName="remarks" placeholder="Optional notes…" rows="2"></textarea>
+        </div>
+
+      </div>
+
+      <div class="server-err" *ngIf="formError">{{ formError }}</div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" (click)="closeModal()">Cancel</button>
+        <button type="submit" class="btn-primary" [disabled]="formLoading">
+          <span class="spinner spinner-sm spinner-white" *ngIf="formLoading"></span>
+          Save Status
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ── QR Code Modal ──────────────────────────────────────── -->
+<div class="backdrop" *ngIf="modalMode === 'qr'" (click)="closeModal()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-title-group">
+        <div class="modal-icon modal-icon--teal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="modal-title">QR Code</h2>
+          <p class="modal-sub">{{ selected?.visitorName }} · Request #{{ selected?.requestId }}</p>
+        </div>
+      </div>
+      <button class="close-btn" (click)="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body qr-body">
+      <div class="qr-loading" *ngIf="qrLoading">
+        <span class="spinner"></span>
+        <span class="qr-loading-text">Generating QR code…</span>
+      </div>
+      <div class="qr-display" *ngIf="!qrLoading && qrImage">
+        <img [src]="'data:image/png;base64,' + qrImage" alt="QR Code" class="qr-img" />
+        <p class="qr-hint">Scan this code at the entry point</p>
+      </div>
+      <div class="qr-empty" *ngIf="!qrLoading && !qrImage">
+        <p class="empty-text">QR code could not be generated.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-ghost" (click)="closeModal()">Close</button>
+      <a *ngIf="qrImage" [href]="'data:image/png;base64,' + qrImage" download="qr-request-{{ selected?.requestId }}.png" class="btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Delete Confirm ─────────────────────────────────────── -->
+<div class="backdrop" *ngIf="deleteTarget" (click)="cancelDelete()">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title modal-title--danger">Remove Request</h2>
+    </div>
+    <div class="modal-body">
+      <p class="delete-msg">Remove the request for <strong>{{ deleteTarget.visitorName }}</strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" (click)="cancelDelete()">Cancel</button>
+      <button class="btn-danger" (click)="doDelete()" [disabled]="deleteLoading">
+        <span class="spinner spinner-sm spinner-white" *ngIf="deleteLoading"></span>
+        Remove
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────── -->
+<div class="toast" [class.toast-err]="!toast!.ok" *ngIf="toast">
+  <svg *ngIf="toast!.ok" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+  </svg>
+  <svg *ngIf="!toast!.ok" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+  {{ toast!.msg }}
+</div>

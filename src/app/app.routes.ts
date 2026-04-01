@@ -46,6 +46,14 @@ export const routes: Routes = [
           import('./../app/core/pages/visitorsrequest/visitorRequests.component')
             .then(m => m.VisitorRequestsComponent)
       },
+      {
+        path: 'users',
+        loadComponent: () => import('./core/pages/users/users.component').then(m => m.UsersComponent)
+      },
+      {
+        path: 'designations',
+        loadComponent: () => import('./core/pages/designations/designations.component').then(m => m.DesignationsComponent)
+      },
       // Default redirect for the layout
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]

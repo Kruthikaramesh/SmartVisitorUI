@@ -4,6 +4,9 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../../../environment/environment';
+
 
 interface ConstellationNode {
   x: number;
@@ -47,16 +50,16 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
   private greetIndex = 0;
 
   private updateGreeting(): void {
-  const hour = new Date().getHours();
+    const hour = new Date().getHours();
 
-  if (hour < 12) {
-    this.greetingWord = 'Good Morning';
-  } else if (hour < 18) {
-    this.greetingWord = 'Good Afternoon';
-  } else {
-    this.greetingWord = 'Good Evening';
+    if (hour < 12) {
+      this.greetingWord = 'Good Morning';
+    } else if (hour < 18) {
+      this.greetingWord = 'Good Afternoon';
+    } else {
+      this.greetingWord = 'Good Evening';
+    }
   }
-}
 
   private readonly NODE_COLORS = [
     'rgba(26,111,232,',
@@ -68,7 +71,8 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor(
     private router: Router,
     private renderer: Renderer2,
-    private ngZone: NgZone
+    private ngZone: NgZone,
+    private http: HttpClient
   ) { }
 
   /* ═══════════════════ LIFECYCLE ═══════════════════ */
@@ -84,7 +88,7 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
       this.updateGreeting();
     }, 60000); // update every minute
   }
-  
+
 
   ngAfterViewInit(): void {
     this.initCanvas();
@@ -175,7 +179,7 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
 
- 
+
 
   /* ═══════════════════ CANVAS CONSTELLATION ═══════════════════ */
 
@@ -384,10 +388,49 @@ export class WelcomePageComponent implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => this.renderer.removeChild(card, ripple), 800);
 
     // Navigate with the selected action so login can route correctly.
-    setTimeout(() => {
-      this.router.navigate(['/auth/login'], { queryParams: { action: route } });
-    }, 300);
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setTimeout(() => this.router.navigate(['/auth/login']), 300);
+      return;
+    }
+
+    this.http.get<{ message: string }>(`${environment.apiUrl}/api/Auth/secure`, {
+      headers: { Authorization: `Bearer ${token}` }
+    }).subscribe({
+      next: (response) => {
+        if (response.message === 'Authorized') {
+          // Token is valid — go to intended route
+          const role = (localStorage.getItem('role') || '').trim().toLowerCase();
+          const isAdmin = role === 'admin';
+          const isSecurity = role === 'security' || role === 'security guard';
+
+          const targetRoute = isAdmin
+            ? ['/dashboard/admin']
+            : isSecurity
+              ? ['/dashboard/security']
+              : ['/dashboard/user'];
+          this.router.navigate(targetRoute);
+        } else {
+          // Unexpected response — treat as invalid
+          localStorage.removeItem('token');
+          this.router.navigate(['/auth/login']);
+        }
+      },
+      error: (err: HttpErrorResponse) => {
+        if (err.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('token');
+          this.router.navigate(['/auth/login']);
+        } else {
+          // Network error or server down — optionally show a toast/snackbar here
+          console.error('Auth check failed:', err.status);
+          this.router.navigate(['/auth/login']);
+        }
+      }
+    });
   }
+
   /* ═══════════════════ BURST PARTICLES ═══════════════════ */
 
   private burstParticles(x: number, y: number): void {

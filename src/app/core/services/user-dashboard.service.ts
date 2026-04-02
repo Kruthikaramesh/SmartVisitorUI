@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environment/environment';
 import {
   UserDashboardKpi,
@@ -24,16 +24,20 @@ export class UserDashboardService {
 
   // ── Get User's Requests (by userId/visitorId) ────────────────────────────
   getUserRequests(userId: number): Observable<VisitorRequest[]> {
-    return this.http.get<ApiResult<VisitorRequest[]>>(`${this.requestApi}?userId=${userId}`).pipe(
-      map(res => this.extractData(res))
+    return this.http.get<any>(`${this.requestApi}/mine/${userId}`).pipe(
+      map(res => this.extractData<VisitorRequest[]>(res)),
+      catchError(err => {
+        console.error('Error fetching user requests:', err);
+        return of([]);
+      })
     );
   }
 
   // ── Get User's Request with Details ───────────────────────────────────────
   getUserRequestDetail(requestId: number): Observable<UserRequestDetail> {
-    return this.http.get<ApiResult<VisitorRequest>>(`${this.requestApi}/${requestId}`).pipe(
+    return this.http.get<any>(`${this.requestApi}/${requestId}`).pipe(
       map(res => {
-        const req = this.extractData(res);
+        const req = this.extractData<VisitorRequest>(res);
         return this.mapToUserRequestDetail(req);
       })
     );
@@ -47,9 +51,9 @@ export class UserDashboardService {
       if (filter.startDate) params += `&startDate=${filter.startDate}`;
       if (filter.endDate) params += `&endDate=${filter.endDate}`;
     }
-    return this.http.get<ApiResult<any[]>>(`${this.visitLogsApi}${params}`).pipe(
+    return this.http.get<any>(`${this.visitLogsApi}${params}`).pipe(
       map(res => {
-        const logs = this.extractData(res);
+        const logs = this.extractData<any[]>(res);
         return logs.map(log => this.mapToUserVisitLog(log));
       })
     );
@@ -68,16 +72,32 @@ export class UserDashboardService {
       map(requests => requests.filter(r => {
         const validTill = new Date(r.validTill);
         return validTill > new Date() && r.status?.toLowerCase() === 'approved';
-      }))
+      })),
+      catchError(() => of([]))
     );
   }
 
   // ── Private Helpers ───────────────────────────────────────────────────────
-  private extractData<T>(res: ApiResult<T>): T {
-    if (!res || !res.data) return [] as any;
-    if (Array.isArray(res.data)) return res.data as T;
-    if (res.data && Array.isArray((res.data as any).$values)) return (res.data as any).$values as T;
-    return res.data as T;
+  private extractData<T>(raw: ApiResult<T> | any): T {
+    if (!raw) return [] as any;
+
+    const candidates = [
+      raw,
+      raw.data,
+      raw.Data,
+      raw.result,
+      raw.Result,
+      raw.value,
+      raw.Value
+    ];
+
+    for (const c of candidates) {
+      if (Array.isArray(c)) return c as T;
+      if (c && Array.isArray(c.$values)) return c.$values as T;
+      if (c && typeof c === 'object' && !Array.isArray(c) && raw !== c && 'requestId' in c) return c as T;
+    }
+
+    return (raw?.data ?? raw?.Data ?? raw) as T;
   }
 
   private mapToUserRequestDetail(request: VisitorRequest): UserRequestDetail {

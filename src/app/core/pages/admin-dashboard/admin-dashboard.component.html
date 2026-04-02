@@ -1,5 +1,11 @@
 <div class="dash">
 
+  <!-- ── Loading Overlay ─────────────────────────────────────── -->
+  <div class="loading-overlay" *ngIf="loading && !kpi && recentRequests.length === 0">
+    <div class="spinner"></div>
+    <p>Loading dashboard...</p>
+  </div>
+
   <!-- ── Hero Header ─────────────────────────────────────────── -->
   <div class="dash-hero">
     <div class="dash-hero__left">

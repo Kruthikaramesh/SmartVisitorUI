@@ -31,7 +31,7 @@ export class VisitorRequestsComponent implements OnInit {
   qrLoading = false;
   qrImage: string | null = null;
   copyTokenLoadingRequestId: number | null = null;
-  downloadTokenLoadingRequestId: number | null = null;
+  downloadQrLoadingRequestId: number | null = null;
 
   toast: { msg: string; ok: boolean } | null = null;
   private toastTimer: any;
@@ -254,18 +254,18 @@ export class VisitorRequestsComponent implements OnInit {
     });
   }
 
-  downloadToken(r: VisitorRequest) {
+  downloadQrImage(r: VisitorRequest) {
     if (!this.canAccessTokenActions(r)) {
-      this.notify('Only the request creator or admin can download token.', false);
+      this.notify('Only the request creator or admin can download QR image.', false);
       return;
     }
 
     if (r.status !== 'Approved') {
-      this.notify('Token is available only for approved requests.', false);
+      this.notify('QR image is available only for approved requests.', false);
       return;
     }
 
-    this.downloadTokenLoadingRequestId = r.requestId;
+    this.downloadQrLoadingRequestId = r.requestId;
     this.cdr.detectChanges();
 
     const dto: GenerateQrCodeRequestDto = {
@@ -275,22 +275,22 @@ export class VisitorRequestsComponent implements OnInit {
 
     this.requestService.generateQR(r.requestId, dto).subscribe({
       next: raw => this.zone.run(() => {
-        const token = raw?.data?.qrToken ?? raw?.data?.QrToken ?? raw?.qrToken ?? raw?.QrToken ?? null;
-        if (!token) {
-          this.notify('Token not available for this request.', false);
-          this.downloadTokenLoadingRequestId = null;
+        const qrImage = raw?.data?.qrImageBase64 ?? raw?.data?.QrImageBase64 ?? raw?.qrImageBase64 ?? raw?.QrImageBase64 ?? null;
+        if (!qrImage) {
+          this.notify('QR image not available for this request.', false);
+          this.downloadQrLoadingRequestId = null;
           this.cdr.detectChanges();
           return;
         }
 
-        this.saveTokenFile(r.requestId, token);
-        this.notify('Token file downloaded.', true);
-        this.downloadTokenLoadingRequestId = null;
+        this.saveQrImageFile(r.requestId, qrImage);
+        this.notify('QR image downloaded.', true);
+        this.downloadQrLoadingRequestId = null;
         this.cdr.detectChanges();
       }),
       error: () => this.zone.run(() => {
-        this.notify('Failed to fetch token.', false);
-        this.downloadTokenLoadingRequestId = null;
+        this.notify('Failed to fetch QR image.', false);
+        this.downloadQrLoadingRequestId = null;
         this.cdr.detectChanges();
       })
     });
@@ -304,16 +304,14 @@ export class VisitorRequestsComponent implements OnInit {
     return this.isAdmin || this.currentUserRole === 'Employee';
   }
 
-  private saveTokenFile(requestId: number, token: string): void {
-    const blob = new Blob([token], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+  private saveQrImageFile(requestId: number, base64: string): void {
+    const url = `data:image/png;base64,${base64}`;
     const a = document.createElement('a');
     a.href = url;
-    a.download = `request-${requestId}-token.txt`;
+    a.download = `request-${requestId}-qr.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   }
 
   private async writeClipboard(text: string): Promise<boolean> {

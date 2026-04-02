@@ -1,5 +1,11 @@
 <div class="ud">
 
+  <!-- ── Loading Overlay ─────────────────────────────────── -->
+  <div class="loading-overlay" *ngIf="loading && !kpi">
+    <div class="spinner"></div>
+    <p>Loading your dashboard...</p>
+  </div>
+
   <!-- Header -->
   <div class="ud-header">
     <div class="ud-title-group">

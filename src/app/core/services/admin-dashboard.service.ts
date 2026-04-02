@@ -29,15 +29,30 @@ export class AdminDashboardService {
 
   // ── Get Pending Requests ──────────────────────────────────────────────────
   getPendingRequests(): Observable<VisitorRequest[]> {
-    return this.http.get<ApiResult<VisitorRequest[]>>(`${this.requestApi}?status=pending`).pipe(
-      map(res => this.extractData(res))
+    return this.getAllRequests().pipe(
+      map(requests => requests.filter(r => r.status?.toLowerCase() === 'pending'))
     );
   }
 
-  // ── Get All Requests ──────────────────────────────────────────────────────
+  // ── Get All Requests (Admin only) ────────────────────────────────────
   getAllRequests(): Observable<VisitorRequest[]> {
-    return this.http.get<ApiResult<VisitorRequest[]>>(this.requestApi).pipe(
-      map(res => this.extractData(res))
+    return this.http.get<any>(this.requestApi).pipe(
+      map(res => this.extractData<VisitorRequest[]>(res)),
+      catchError(err => {
+        console.error('Error fetching all requests:', err);
+        return of([]);
+      })
+    );
+  }
+
+  // ── Get Requests by User ID (using /mine endpoint) ───────────────────────
+  getRequestsByUserId(userId: number): Observable<VisitorRequest[]> {
+    return this.http.get<any>(`${this.requestApi}/mine/${userId}`).pipe(
+      map(res => this.extractData<VisitorRequest[]>(res)),
+      catchError(err => {
+        console.error('Error fetching user requests:', err);
+        return of([]);
+      })
     );
   }
 
@@ -90,8 +105,8 @@ export class AdminDashboardService {
       if (filter.searchText) queryParts.push(`search=${filter.searchText}`);
       params = queryParts.length > 0 ? '?' + queryParts.join('&') : '';
     }
-    return this.http.get<ApiResult<RequestLog[]>>(`${this.logsApi}${params}`).pipe(
-      map(res => this.extractData(res)),
+    return this.http.get<any>(`${this.logsApi}${params}`).pipe(
+      map(res => this.extractData<RequestLog[]>(res)),
       catchError(() => of([]))
     );
   }
@@ -111,11 +126,26 @@ export class AdminDashboardService {
   }
 
   // ── Private Helpers ───────────────────────────────────────────────────────
-  private extractData<T>(res: ApiResult<T>): T {
-    if (!res || !res.data) return [] as any;
-    if (Array.isArray(res.data)) return res.data as T;
-    if (res.data && Array.isArray((res.data as any).$values)) return (res.data as any).$values as T;
-    return res.data as T;
+  private extractData<T>(raw: ApiResult<T> | any): T {
+    if (!raw) return [] as any;
+
+    const candidates = [
+      raw,
+      raw.data,
+      raw.Data,
+      raw.result,
+      raw.Result,
+      raw.value,
+      raw.Value
+    ];
+
+    for (const c of candidates) {
+      if (Array.isArray(c)) return c as T;
+      if (c && Array.isArray(c.$values)) return c.$values as T;
+      if (c && typeof c === 'object' && !Array.isArray(c) && raw !== c && 'requestId' in c) return c as T;
+    }
+
+    return (raw?.data ?? raw?.Data ?? raw) as T;
   }
 
   private addApprovalTracking(request: VisitorRequest): RequestWithApprovalTracking {

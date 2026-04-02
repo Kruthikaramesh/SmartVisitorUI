@@ -111,4 +111,8 @@ export class AuthService {
     const normalized = token.trim().toLowerCase();
     return normalized !== 'undefined' && normalized !== 'null' && normalized.length > 0;
   }
+
+  validToken() {
+    return this.http.get(`${this.baseUrl}/secure`);
+  }
 }

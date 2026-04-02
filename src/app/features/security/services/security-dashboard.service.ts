@@ -60,13 +60,13 @@ export class SecurityDashboardService {
   verifyToken(payload: string, remarks: string, source: ScanLog['source']): Observable<VerificationResult> {
     const normalizedPayload = payload.trim();
 
-    return this.http.post<ApiResult<ScanValidationResponseDto>>(`${this.scanApi}/validate`, {
+    return this.http.post<ScanValidationResponseDto | ApiResult<ScanValidationResponseDto>>(`${this.scanApi}/validate`, {
       qrPayload: normalizedPayload,
       scannedBy: this.currentUserId,
       remarks
     }).pipe(
       map(res => {
-        const result = res?.data;
+        const result = this.extractScanResult(res);
         const status = this.mapDecisionToStatus(result?.decision, result?.message);
         const title = status === 'approved' ? 'Secure Verification' : 'Access Review Required';
         const checkinMessage = status === 'approved'
@@ -83,6 +83,13 @@ export class SecurityDashboardService {
         } as VerificationResult;
       })
     );
+  }
+
+  private extractScanResult(res: ScanValidationResponseDto | ApiResult<ScanValidationResponseDto> | null | undefined): ScanValidationResponseDto | null {
+    if (!res) return null;
+    const maybeWrapped = res as ApiResult<ScanValidationResponseDto>;
+    if (maybeWrapped.data) return maybeWrapped.data;
+    return res as ScanValidationResponseDto;
   }
 
   private mapVisitLog(log: VisitLogApiDto): ScanLog {

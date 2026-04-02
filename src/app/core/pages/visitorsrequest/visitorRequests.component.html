@@ -106,7 +106,7 @@
           <th>Purpose</th>
           <th>Valid Period</th>
           <th>Status</th>
-          <th class="th-actions" *ngIf="isAdmin">Actions</th>
+          <th class="th-actions" *ngIf="canShowActions()">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -156,22 +156,44 @@
           </td>
 
           <!-- Actions -->
-          <td *ngIf="isAdmin">
+          <td *ngIf="canShowActions()">
             <div class="action-btns">
               <!-- Update Status -->
-              <button class="act-btn act-status" (click)="openStatus(r)" title="Update Status" [disabled]="r.status !== 'Pending'">
+              <button *ngIf="isAdmin" class="act-btn act-status" (click)="openStatus(r)" title="Update Status" [disabled]="r.status !== 'Pending'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582M20 20v-5h-.581M5.635 19A9 9 0 1 1 19 5.636" />
                 </svg>
               </button>
               <!-- Generate QR — only enabled for Approved -->
-              <button class="act-btn act-qr" (click)="openQR(r)" title="Generate QR Code" [disabled]="r.status !== 'Approved'">
+              <button *ngIf="isAdmin" class="act-btn act-qr" (click)="openQR(r)" title="Generate QR Code" [disabled]="r.status !== 'Approved'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                 </svg>
               </button>
+              <!-- Copy token — only enabled for Approved -->
+              <button
+                *ngIf="canAccessTokenActions(r)"
+                class="act-btn act-copy"
+                (click)="copyToken(r)"
+                title="Copy Token"
+                [disabled]="r.status !== 'Approved' || copyTokenLoadingRequestId === r.requestId">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2M10 20h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </button>
+              <!-- Download token — only enabled for Approved -->
+              <button
+                *ngIf="canAccessTokenActions(r)"
+                class="act-btn act-download"
+                (click)="downloadToken(r)"
+                title="Download Token"
+                [disabled]="r.status !== 'Approved' || downloadTokenLoadingRequestId === r.requestId">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 4v10m0 0l-4-4m4 4l4-4" />
+                </svg>
+              </button>
               <!-- Remove -->
-              <button class="act-btn act-del" (click)="confirmDelete(r)" title="Remove">
+              <button *ngIf="isAdmin" class="act-btn act-del" (click)="confirmDelete(r)" title="Remove">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3M4 7h16" />
                 </svg>

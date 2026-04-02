@@ -30,6 +30,8 @@ export class VisitorRequestsComponent implements OnInit {
 
   qrLoading = false;
   qrImage: string | null = null;
+  copyTokenLoadingRequestId: number | null = null;
+  downloadTokenLoadingRequestId: number | null = null;
 
   toast: { msg: string; ok: boolean } | null = null;
   private toastTimer: any;
@@ -208,6 +210,137 @@ export class VisitorRequestsComponent implements OnInit {
         this.cdr.detectChanges();
       })
     });
+  }
+
+  copyToken(r: VisitorRequest) {
+    if (!this.canAccessTokenActions(r)) {
+      this.notify('Only the request creator or admin can copy token.', false);
+      return;
+    }
+
+    if (r.status !== 'Approved') {
+      this.notify('Token is available only for approved requests.', false);
+      return;
+    }
+
+    this.copyTokenLoadingRequestId = r.requestId;
+    this.cdr.detectChanges();
+
+    const dto: GenerateQrCodeRequestDto = {
+      generatedBy: this.CURRENT_USER_ID,
+      regenerateIfExists: false
+    };
+
+    this.requestService.generateQR(r.requestId, dto).subscribe({
+      next: raw => this.zone.run(async () => {
+        const token = raw?.data?.qrToken ?? raw?.data?.QrToken ?? raw?.qrToken ?? raw?.QrToken ?? null;
+        if (!token) {
+          this.notify('Token not available for this request.', false);
+          this.copyTokenLoadingRequestId = null;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        const copied = await this.writeClipboard(token);
+        this.notify(copied ? 'Token copied to clipboard.' : 'Failed to copy token.', copied);
+        this.copyTokenLoadingRequestId = null;
+        this.cdr.detectChanges();
+      }),
+      error: () => this.zone.run(() => {
+        this.notify('Failed to fetch token.', false);
+        this.copyTokenLoadingRequestId = null;
+        this.cdr.detectChanges();
+      })
+    });
+  }
+
+  downloadToken(r: VisitorRequest) {
+    if (!this.canAccessTokenActions(r)) {
+      this.notify('Only the request creator or admin can download token.', false);
+      return;
+    }
+
+    if (r.status !== 'Approved') {
+      this.notify('Token is available only for approved requests.', false);
+      return;
+    }
+
+    this.downloadTokenLoadingRequestId = r.requestId;
+    this.cdr.detectChanges();
+
+    const dto: GenerateQrCodeRequestDto = {
+      generatedBy: this.CURRENT_USER_ID,
+      regenerateIfExists: false
+    };
+
+    this.requestService.generateQR(r.requestId, dto).subscribe({
+      next: raw => this.zone.run(() => {
+        const token = raw?.data?.qrToken ?? raw?.data?.QrToken ?? raw?.qrToken ?? raw?.QrToken ?? null;
+        if (!token) {
+          this.notify('Token not available for this request.', false);
+          this.downloadTokenLoadingRequestId = null;
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.saveTokenFile(r.requestId, token);
+        this.notify('Token file downloaded.', true);
+        this.downloadTokenLoadingRequestId = null;
+        this.cdr.detectChanges();
+      }),
+      error: () => this.zone.run(() => {
+        this.notify('Failed to fetch token.', false);
+        this.downloadTokenLoadingRequestId = null;
+        this.cdr.detectChanges();
+      })
+    });
+  }
+
+  canAccessTokenActions(r: VisitorRequest): boolean {
+    return this.isAdmin || r.requestedById === this.CURRENT_USER_ID;
+  }
+
+  canShowActions(): boolean {
+    return this.isAdmin || this.currentUserRole === 'Employee';
+  }
+
+  private saveTokenFile(requestId: number, token: string): void {
+    const blob = new Blob([token], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `request-${requestId}-token.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  private async writeClipboard(text: string): Promise<boolean> {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // Fall back to the legacy API below.
+    }
+
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.setAttribute('readonly', '');
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } finally {
+      document.body.removeChild(textArea);
+    }
+    return copied;
   }
 
   // ── Delete ────────────────────────────────────────────────────────

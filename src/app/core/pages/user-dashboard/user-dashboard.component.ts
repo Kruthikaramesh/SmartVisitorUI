@@ -1,8 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { UserDashboardService } from '../../../core/services/user-dashboard.service';
 import { VisitorRequest } from '../../../shared/models/visitor-request.model';
-import { UserDashboardKpi, UserVisitLog } from '../../../shared/models/user-dashboard.model';
+import { UserDashboardKpi } from '../../../shared/models/user-dashboard.model';
 
 @Component({
   selector: 'app-user-dashboard',
@@ -16,9 +16,8 @@ export class UserDashboardComponent implements OnInit {
 
   kpi: UserDashboardKpi | null = null;
   requests: VisitorRequest[] = [];
-  visitLogs: UserVisitLog[] = [];
   loading = false;
-  selectedTab: 'requests' | 'visits' = 'requests';
+  selectedTab: 'requests' = 'requests';
   toast: { msg: string; ok: boolean } | null = null;
   today = new Date();
 
@@ -41,15 +40,10 @@ export class UserDashboardComponent implements OnInit {
       next: reqs => { this.requests = reqs; this.loading = false; },
       error: () => { this.showToast('Failed to load requests', false); this.loading = false; }
     });
-
-    this.userService.getUserVisitLogs(this.currentUserId).subscribe({
-      next: logs => { this.visitLogs = logs; },
-      error: () => this.showToast('Failed to load visit history', false)
-    });
   }
 
   // ── Tabs ──────────────────────────────────────────────────────────────────
-  switchTab(tab: 'requests' | 'visits'): void {
+  switchTab(tab: 'requests'): void {
     this.selectedTab = tab;
   }
 

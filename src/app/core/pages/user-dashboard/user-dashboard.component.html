@@ -127,10 +127,6 @@
         My Requests
         <span class="tab-count">{{ requests.length }}</span>
       </button>
-      <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'visits'" (click)="switchTab('visits')">
-        Visit History
-        <span class="tab-count">{{ visitLogs.length }}</span>
-      </button>
     </div>
 
     <!-- Requests Tab -->
@@ -185,52 +181,6 @@
         </div>
         <p class="empty-title">No requests yet</p>
         <p class="empty-sub">Your visitor requests will appear here</p>
-      </div>
-    </div>
-
-    <!-- Visits Tab -->
-    <div *ngIf="selectedTab === 'visits'">
-      <div class="table-card" *ngIf="visitLogs.length > 0">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Visitor</th>
-              <th>Check In</th>
-              <th>Check Out</th>
-              <th>Duration</th>
-              <th>Purpose</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let log of visitLogs; let i = index" class="tr" [style.animation-delay]="(i * 30) + 'ms'">
-              <td>
-                <div class="visitor-cell">
-                  <div class="v-avatar" [style.background]="avatarBg(log.visitorName)">{{ initials(log.visitorName) }}</div>
-                  <span class="v-name">{{ log.visitorName }}</span>
-                </div>
-              </td>
-              <td class="td-muted">{{ log.checkInTime | date:'dd MMM, hh:mm a' }}</td>
-              <td class="td-muted">{{ log.checkOutTime ? (log.checkOutTime | date:'dd MMM, hh:mm a') : '—' }}</td>
-              <td>
-                <span class="duration-chip" *ngIf="log.duration">{{ log.duration }}</span>
-                <span class="active-chip" *ngIf="!log.duration">Active</span>
-              </td>
-              <td><span class="purpose-text" [title]="log.purpose">{{ log.purpose }}</span></td>
-              <td class="td-muted">{{ log.notes || '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="empty-state" *ngIf="visitLogs.length === 0">
-        <div class="empty-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <p class="empty-title">No visit history</p>
-        <p class="empty-sub">Completed visits will appear here</p>
       </div>
     </div>
 

@@ -1,92 +1,206 @@
 <div class="vp">
+
+  <!-- Header -->
   <div class="vp-header">
     <div class="vp-title-group">
       <h1 class="vp-title">QR Verification</h1>
-      <p class="vp-subtitle">Verify visitor access by token, uploaded QR image, or live camera scan</p>
+      <p class="vp-subtitle">Verify visitor access by token, live camera scan, or uploaded QR image</p>
     </div>
-    <button class="btn-primary" type="button" (click)="verify()">Verify Access</button>
   </div>
 
+  <!-- Stat Cards -->
   <div class="stats-row">
     <div class="stat-card">
-      <div class="stat-icon stat-icon--teal">Cam</div>
+      <div class="stat-icon stat-icon--teal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10l4.553-2.069A1 1 0 0121 8.87V15.13a1 1 0 01-1.447.899L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+        </svg>
+      </div>
       <div class="stat-body">
-        <span class="stat-value">{{ cameraSupported ? 'Ready' : 'N/A' }}</span>
+        <span class="stat-value" [class.stat-value--ok]="cameraSupported">{{ cameraSupported ? 'Ready' : 'N/A' }}</span>
         <span class="stat-label">Camera Status</span>
       </div>
     </div>
+
     <div class="stat-card">
-      <div class="stat-icon stat-icon--indigo">Img</div>
+      <div class="stat-icon stat-icon--indigo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
       <div class="stat-body">
         <span class="stat-value">{{ uploadedFileName ? '1' : '0' }}</span>
         <span class="stat-label">Uploaded Files</span>
       </div>
     </div>
+
     <div class="stat-card">
-      <div class="stat-icon stat-icon--rose">Res</div>
+      <div class="stat-icon" [ngClass]="resultIconClass()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
       <div class="stat-body">
-        <span class="stat-value">{{ verificationResult?.status ? (verificationResult?.status | titlecase) : 'Pending' }}</span>
+        <span class="stat-value" [ngClass]="resultValueClass()">{{ verificationResult?.status ? (verificationResult!.status | titlecase) : 'Pending' }}</span>
         <span class="stat-label">Last Decision</span>
       </div>
     </div>
   </div>
 
-  <div class="table-card scanner-card" [formGroup]="form">
-    <div class="toolbar">
-      <div class="mode-tabs">
-        <button type="button" class="btn-ghost" [class.tab-active]="mode === 'token'" (click)="setMode('token')">Token</button>
-        <button type="button" class="btn-ghost" [class.tab-active]="mode === 'camera'" (click)="setMode('camera')">Camera Scan</button>
-        <button type="button" class="btn-ghost" [class.tab-active]="mode === 'upload'" (click)="setMode('upload')">Upload Image</button>
-      </div>
-      <span class="result-count">Mode: {{ mode | titlecase }}</span>
+  <!-- Main Card -->
+  <div class="scanner-card" [formGroup]="form">
+
+    <!-- Mode Switcher -->
+    <div class="mode-switcher">
+      <button type="button" class="mode-btn" [class.mode-btn--active]="mode === 'token'" (click)="setMode('token')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+        </svg>
+        Token
+      </button>
+      <button type="button" class="mode-btn" [class.mode-btn--active]="mode === 'camera'" (click)="setMode('camera')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.87V15.13a1 1 0 01-1.447.899L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+        </svg>
+        Camera Scan
+      </button>
+      <button type="button" class="mode-btn" [class.mode-btn--active]="mode === 'upload'" (click)="setMode('upload')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg>
+        Upload Image
+      </button>
     </div>
 
-    <div class="scanner-grid" [class.scanner-grid--upload]="mode === 'upload'">
+    <!-- Body -->
+    <div class="scanner-body" [class.scanner-body--split]="mode === 'upload' && uploadedPreviewUrl">
+
+      <!-- Left / Main column -->
       <div class="scanner-left">
-        <ng-container [ngSwitch]="mode">
-          <section *ngSwitchCase="'token'" class="mode-pane">
-            <label class="field-label">Access Token</label>
-            <input class="field-input" type="text" formControlName="token" placeholder="Paste scanned token" />
-          </section>
 
-          <section *ngSwitchCase="'camera'" class="mode-pane">
-            <div class="camera-frame">
-              <video #videoEl autoplay muted playsinline></video>
-              <div class="scan-overlay">Place QR inside frame</div>
+        <!-- Token mode -->
+        <ng-container *ngIf="mode === 'token'">
+          <div class="mode-pane">
+            <div class="mode-pane-icon mode-pane-icon--indigo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+              </svg>
             </div>
-            <p class="hint" *ngIf="!cameraSupported">Camera mode is not supported on this browser.</p>
-          </section>
-
-          <section *ngSwitchCase="'upload'" class="mode-pane">
-            <label class="upload-box">
-              <input type="file" accept="image/*" (change)="onUpload($event)" />
-              <span>Choose QR image</span>
-            </label>
-            <p class="hint" *ngIf="uploadedFileName">Selected: {{ uploadedFileName }}</p>
-          </section>
+            <p class="mode-pane-title">Enter Access Token</p>
+            <p class="mode-pane-sub">Paste or type the token from a visitor's QR code</p>
+          </div>
+          <div class="field">
+            <label class="field-label">Token <span class="req">*</span></label>
+            <input class="field-input" type="text" formControlName="token" placeholder="e.g. VIS-2024-XXXXXXXX" />
+            <span class="err-msg" *ngIf="form.controls['token'].touched && form.controls['token'].errors?.['required']">Token is required.</span>
+          </div>
         </ng-container>
 
-        <label class="field-label">Remarks (optional)</label>
-        <textarea class="field-input" formControlName="remarks" rows="3" placeholder="Any gate notes or visitor remarks"></textarea>
+        <!-- Camera mode -->
+        <ng-container *ngIf="mode === 'camera'">
+          <div class="camera-wrap">
+            <video #videoEl autoplay muted playsinline class="camera-video"></video>
+            <div class="camera-corners">
+              <div class="cam-c cam-c--tl"></div>
+              <div class="cam-c cam-c--tr"></div>
+              <div class="cam-c cam-c--bl"></div>
+              <div class="cam-c cam-c--br"></div>
+            </div>
+            <div class="camera-scan-line"></div>
+            <div class="camera-label">Position QR code within the frame</div>
+          </div>
+          <div class="field" *ngIf="form.controls['token'].value">
+            <label class="field-label">Detected Token</label>
+            <input class="field-input field-input--detected" type="text" formControlName="token" readonly />
+          </div>
+          <p class="hint-msg hint-msg--warn" *ngIf="!cameraSupported">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Camera is not supported on this browser.
+          </p>
+        </ng-container>
 
-        <p class="extract-message" *ngIf="extractMessage">{{ extractMessage }}</p>
+        <!-- Upload mode -->
+        <ng-container *ngIf="mode === 'upload'">
+          <label class="upload-drop">
+            <input type="file" accept="image/*" (change)="onUpload($event)" />
+            <div class="upload-drop-inner">
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </div>
+              <p class="upload-drop-title">{{ uploadedFileName || 'Click to upload a QR image' }}</p>
+              <p class="upload-drop-sub">PNG, JPG, WEBP up to 10 MB</p>
+            </div>
+          </label>
+          <div class="field" *ngIf="form.controls['token'].value">
+            <label class="field-label">Extracted Token</label>
+            <input class="field-input field-input--detected" type="text" formControlName="token" readonly />
+          </div>
+        </ng-container>
+
+        <!-- Remarks — always shown -->
+        <div class="field">
+          <label class="field-label">Remarks <span class="field-opt">(optional)</span></label>
+          <textarea class="field-input field-textarea" formControlName="remarks" rows="3" placeholder="Gate notes or visitor remarks…"></textarea>
+        </div>
+
+        <!-- Extract message -->
+        <div class="extract-msg" *ngIf="extractMessage">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          {{ extractMessage }}
+        </div>
+
+        <!-- Verify button -->
+        <button type="button" class="btn-verify" (click)="verify()" [disabled]="!form.controls['token'].value">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          Verify Access
+        </button>
       </div>
 
-      <aside class="preview-panel" *ngIf="mode === 'upload'">
-        <h3 class="panel-title">Upload Preview</h3>
-        <div class="preview-box" *ngIf="uploadedPreviewUrl; else noPreview">
-          <img [src]="uploadedPreviewUrl" alt="Uploaded QR preview" />
+      <!-- Right — Upload preview -->
+      <div class="preview-col" *ngIf="mode === 'upload' && uploadedPreviewUrl">
+        <p class="preview-label">Preview</p>
+        <div class="preview-img-wrap">
+          <img [src]="uploadedPreviewUrl" alt="QR preview" class="preview-img" />
         </div>
-        <ng-template #noPreview>
-          <div class="preview-empty">No image uploaded yet</div>
-        </ng-template>
-      </aside>
+      </div>
+
     </div>
 
-    <div class="info-stack">
-      <p><strong>Verification:</strong> {{ verificationResult?.title || 'Waiting for verification' }}</p>
-      <p><strong>Details:</strong> {{ verificationResult?.details || 'Scan with camera or upload an image to extract token' }}</p>
-      <p><strong>Check-in:</strong> {{ verificationResult?.checkinMessage || 'Successful scans are logged instantly.' }}</p>
+    <!-- Result Panel -->
+    <div class="result-panel" *ngIf="verificationResult" [ngClass]="resultPanelClass()">
+      <div class="result-icon-wrap">
+        <svg *ngIf="verificationResult.status === 'approved'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+        </svg>
+        <svg *ngIf="verificationResult.status === 'denied'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <svg *ngIf="verificationResult.status !== 'approved' && verificationResult.status !== 'denied'" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="result-text">
+        <p class="result-title">{{ verificationResult.title }}</p>
+        <p class="result-detail">{{ verificationResult.details }}</p>
+        <p class="result-checkin">{{ verificationResult.checkinMessage }}</p>
+      </div>
     </div>
+
+    <!-- Idle result hint -->
+    <div class="result-idle" *ngIf="!verificationResult">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      Enter or scan a token then click <strong>Verify Access</strong> — successful scans are logged instantly.
+    </div>
+
   </div>
 </div>

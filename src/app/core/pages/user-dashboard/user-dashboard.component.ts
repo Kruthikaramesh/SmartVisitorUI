@@ -1,14 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { CommonModule, DatePipe } from '@angular/common';
 import { UserDashboardService } from '../../../core/services/user-dashboard.service';
 import { VisitorRequest } from '../../../shared/models/visitor-request.model';
-import { UserDashboardKpi, UserRequestDetail, UserVisitLog } from '../../../shared/models/user-dashboard.model';
+import { UserDashboardKpi, UserVisitLog } from '../../../shared/models/user-dashboard.model';
 
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './user-dashboard.component.html',
   styleUrls: ['./user-dashboard.component.css']
 })
@@ -19,11 +18,12 @@ export class UserDashboardComponent implements OnInit {
   requests: VisitorRequest[] = [];
   visitLogs: UserVisitLog[] = [];
   loading = false;
-  selectedTab: 'overview' | 'requests' | 'visits' = 'overview';
+  selectedTab: 'requests' | 'visits' = 'requests';
   toast: { msg: string; ok: boolean } | null = null;
+  today = new Date();
 
   currentUserId = Number(localStorage.getItem('userId') || '1');
-  currentUserName = localStorage.getItem('fullName') || 'Unknown';
+  currentUserName = localStorage.getItem('fullName') || 'User';
 
   ngOnInit(): void {
     this.loadDashboard();
@@ -32,93 +32,64 @@ export class UserDashboardComponent implements OnInit {
   loadDashboard(): void {
     this.loading = true;
 
-    // Load KPI
     this.userService.getUserKpi(this.currentUserId).subscribe({
-      next: (kpi) => {
-        this.kpi = kpi;
-      },
-      error: (err) => {
-        console.error('Error loading KPI', err);
-        this.showToast('Error loading KPI', false);
-      }
+      next: kpi => { this.kpi = kpi; },
+      error: () => this.showToast('Failed to load stats', false)
     });
 
-    // Load User Requests
     this.userService.getUserRequests(this.currentUserId).subscribe({
-      next: (requests) => {
-        this.requests = requests;
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Error loading requests', err);
-        this.showToast('Error loading requests', false);
-        this.loading = false;
-      }
+      next: reqs => { this.requests = reqs; this.loading = false; },
+      error: () => { this.showToast('Failed to load requests', false); this.loading = false; }
     });
 
-    // Load Visit Logs
     this.userService.getUserVisitLogs(this.currentUserId).subscribe({
-      next: (logs) => {
-        this.visitLogs = logs;
-      },
-      error: (err) => {
-        console.error('Error loading visit logs', err);
-      }
+      next: logs => { this.visitLogs = logs; },
+      error: () => this.showToast('Failed to load visit history', false)
     });
   }
 
-  // ── Get Request Status Badge Class ────────────────────────────────────────
-  getStatusClass(status: string): string {
-    const statusMap: { [key: string]: string } = {
-      'approved': 'status-approved',
-      'pending': 'status-pending',
-      'rejected': 'status-rejected',
-      'expired': 'status-expired'
-    };
-    return statusMap[status?.toLowerCase()] || 'status-pending';
-  }
-
-  // ── Check if Request is Expired ───────────────────────────────────────────
-  isExpired(validTill: string): boolean {
-    return new Date(validTill) < new Date();
-  }
-
-  // ── Get Days Until Expiry ─────────────────────────────────────────────────
-  getDaysUntilExpiry(validTill: string): number {
-    const expiry = new Date(validTill);
-    const today = new Date();
-    return Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  }
-
-  // ── Format Date ───────────────────────────────────────────────────────────
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  // ── Get Active Requests ───────────────────────────────────────────────────
-  getActiveRequests(): VisitorRequest[] {
-    return this.requests.filter(r => {
-      const validTill = new Date(r.validTill);
-      return validTill > new Date() && r.status?.toLowerCase() === 'approved';
-    });
-  }
-
-  // ── Switch Tab ────────────────────────────────────────────────────────────
-  switchTab(tab: 'overview' | 'requests' | 'visits'): void {
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  switchTab(tab: 'requests' | 'visits'): void {
     this.selectedTab = tab;
   }
 
-  // ── Show Toast Message ────────────────────────────────────────────────────
+  // ── Derived data ──────────────────────────────────────────────────────────
+  getActiveRequests(): VisitorRequest[] {
+    return this.requests.filter(r =>
+      new Date(r.validTill) > new Date() && r.status?.toLowerCase() === 'approved'
+    );
+  }
+
+  getDaysUntilExpiry(validTill: string): number {
+    return Math.ceil((new Date(validTill).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+  }
+
+  statusClass(status: string): string {
+    const map: Record<string, string> = {
+      approved: 'status--approved',
+      pending: 'status--pending',
+      rejected: 'status--rejected',
+      expired: 'status--expired'
+    };
+    return map[status?.toLowerCase()] ?? 'status--pending';
+  }
+
+  // ── Avatar helpers ────────────────────────────────────────────────────────
+  initials(name: string): string {
+    if (!name) return '?';
+    return name.trim().split(/\s+/).map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  }
+
+  avatarBg(name: string): string {
+    const palette = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#7c3aed', '#db2777', '#0f766e'];
+    let h = 0;
+    for (const c of (name || '')) h = c.charCodeAt(0) + ((h << 5) - h);
+    return palette[Math.abs(h) % palette.length];
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
   private showToast(msg: string, ok: boolean): void {
     this.toast = { msg, ok };
-    setTimeout(() => {
-      this.toast = null;
-    }, 3000);
+    setTimeout(() => { this.toast = null; }, 3000);
   }
 }

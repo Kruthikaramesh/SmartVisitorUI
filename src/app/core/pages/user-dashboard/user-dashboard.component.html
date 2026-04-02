@@ -1,214 +1,250 @@
-<div class="user-dashboard-container">
-  <!-- Toast Notification -->
-  <div *ngIf="toast" class="toast" [class.success]="toast.ok" [class.error]="!toast.ok">
-    {{ toast.msg }}
+<div class="ud">
+
+  <!-- Header -->
+  <div class="ud-header">
+    <div class="ud-title-group">
+      <h1 class="ud-title">My Dashboard</h1>
+      <p class="ud-subtitle">Welcome back, <span class="ud-name">{{ currentUserName }}</span> — here's your access overview</p>
+    </div>
+    <div class="ud-date">{{ today | date:'EEEE, dd MMM yyyy' }}</div>
   </div>
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <h1>Your Dashboard</h1>
-    <p class="subtitle">Hello {{ currentUserName }}, track your visitor requests and access logs</p>
+  <!-- Skeleton -->
+  <div *ngIf="loading">
+    <div class="table-card">
+      <div class="skeleton-wrap">
+        <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]">
+          <div class="sk sk-circle"></div>
+          <div class="sk sk-line sk-w50"></div>
+          <div class="sk sk-line sk-w30"></div>
+          <div class="sk sk-line sk-w40"></div>
+          <div class="sk sk-line sk-w20"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- KPI Cards -->
-  <div *ngIf="kpi" class="kpi-section">
-    <div class="kpi-grid">
+  <ng-container *ngIf="!loading">
+
+    <!-- KPI Row -->
+    <div class="kpi-row" *ngIf="kpi">
       <div class="kpi-card">
-        <div class="kpi-value">{{ kpi.totalRequests }}</div>
-        <div class="kpi-label">Total Requests</div>
+        <div class="kpi-icon kpi-icon--indigo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ kpi.totalRequests }}</span>
+          <span class="kpi-label">Total Requests</span>
+        </div>
       </div>
-      <div class="kpi-card active">
-        <div class="kpi-value">{{ kpi.activeRequests }}</div>
-        <div class="kpi-label">Active</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--teal">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ kpi.activeRequests }}</span>
+          <span class="kpi-label">Active Now</span>
+        </div>
       </div>
-      <div class="kpi-card pending">
-        <div class="kpi-value">{{ kpi.pendingRequests }}</div>
-        <div class="kpi-label">Pending Approval</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--amber">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ kpi.pendingRequests }}</span>
+          <span class="kpi-label">Pending</span>
+        </div>
       </div>
-      <div class="kpi-card approved">
-        <div class="kpi-value">{{ kpi.approvedRequests }}</div>
-        <div class="kpi-label">Approved</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--green">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ kpi.approvedRequests }}</span>
+          <span class="kpi-label">Approved</span>
+        </div>
       </div>
-      <div class="kpi-card rejected">
-        <div class="kpi-value">{{ kpi.rejectedRequests }}</div>
-        <div class="kpi-label">Rejected</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--red">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ kpi.rejectedRequests }}</span>
+          <span class="kpi-label">Rejected</span>
+        </div>
       </div>
-      <div class="kpi-card expired">
-        <div class="kpi-value">{{ kpi.expiredRequests }}</div>
-        <div class="kpi-label">Expired</div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--gray">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="kpi-body">
+          <span class="kpi-value">{{ kpi.expiredRequests }}</span>
+          <span class="kpi-label">Expired</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>Loading your dashboard...</p>
-  </div>
-
-  <!-- Tab Navigation -->
-  <div class="tabs-container" *ngIf="!loading">
-    <div class="tabs">
-      <button
-        class="tab-btn"
-        [class.active]="selectedTab === 'overview'"
-        (click)="switchTab('overview')"
-      >
-        Overview
-      </button>
-      <button
-        class="tab-btn"
-        [class.active]="selectedTab === 'requests'"
-        (click)="switchTab('requests')"
-      >
-        My Requests ({{ requests.length }})
-      </button>
-      <button
-        class="tab-btn"
-        [class.active]="selectedTab === 'visits'"
-        (click)="switchTab('visits')"
-      >
-        Visit History ({{ visitLogs.length }})
-      </button>
-    </div>
-  </div>
-
-  <!-- Overview Tab -->
-  <div *ngIf="selectedTab === 'overview'" class="tab-content">
-    <div class="content-section">
-      <h2>Active Requests</h2>
-      <div *ngIf="getActiveRequests().length > 0" class="requests-grid">
-        <div *ngFor="let request of getActiveRequests()" class="request-card active-card">
-          <div class="card-header">
-            <h3>{{ request.visitorName }}</h3>
-            <span class="status-badge status-approved">ACTIVE</span>
-          </div>
-          <div class="card-body">
-            <div class="card-detail">
-              <label>Purpose</label>
-              <p>{{ request.purpose }}</p>
-            </div>
-            <div class="card-detail">
-              <label>Requested By</label>
-              <p>{{ request.requestedByName }}</p>
-            </div>
-            <div class="card-detail">
-              <label>Valid Period</label>
-              <p>{{ formatDate(request.validFrom) }} - {{ formatDate(request.validTill) }}</p>
-            </div>
-            <div class="card-detail">
-              <label>Days Remaining</label>
-              <p class="days-remaining">{{ getDaysUntilExpiry(request.validTill) }} days</p>
-            </div>
+    <!-- Active Access Banner (only shown when there are active requests) -->
+    <div class="active-banner" *ngIf="getActiveRequests().length > 0">
+      <div class="active-banner-left">
+        <div class="active-pulse-dot"></div>
+        <div>
+          <p class="active-banner-title">You have {{ getActiveRequests().length }} active access {{ getActiveRequests().length === 1 ? 'pass' : 'passes' }}</p>
+          <p class="active-banner-sub">Your approved visitor requests are currently valid</p>
+        </div>
+      </div>
+      <div class="active-banner-passes">
+        <div class="active-pass" *ngFor="let r of getActiveRequests()">
+          <div class="v-avatar" [style.background]="avatarBg(r.visitorName)">{{ initials(r.visitorName) }}</div>
+          <div class="active-pass-info">
+            <span class="active-pass-name">{{ r.visitorName }}</span>
+            <span class="active-pass-days">{{ getDaysUntilExpiry(r.validTill) }}d left</span>
           </div>
         </div>
       </div>
-      <div *ngIf="getActiveRequests().length === 0" class="empty-state">
-        <p>No active requests at the moment</p>
-      </div>
     </div>
 
-    <div class="content-section">
-      <h2>Pending & Expired Requests</h2>
-      <div *ngIf="requests.length > 0" class="requests-grid">
-        <div
-          *ngFor="let request of requests"
-          [ngClass]="getStatusClass(request.status)"
-          class="request-card"
-        >
-          <div class="card-header">
-            <h3>{{ request.visitorName }}</h3>
-            <span class="status-badge" [ngClass]="getStatusClass(request.status)">
-              {{ request.status.toUpperCase() }}
-            </span>
-          </div>
-          <div class="card-body">
-            <div class="card-detail">
-              <label>Purpose</label>
-              <p>{{ request.purpose }}</p>
-            </div>
-            <div class="card-detail">
-              <label>Valid Till</label>
-              <p>{{ formatDate(request.validTill) }}</p>
-            </div>
-            <div class="card-detail" *ngIf="request.status.toLowerCase() === 'approved'">
-              <label>Days Remaining</label>
-              <p>{{ getDaysUntilExpiry(request.validTill) }} days</p>
-            </div>
-          </div>
+    <!-- Tabs -->
+    <div class="tabs-wrap">
+      <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'requests'" (click)="switchTab('requests')">
+        My Requests
+        <span class="tab-count">{{ requests.length }}</span>
+      </button>
+      <button class="tab-btn" [class.tab-btn--active]="selectedTab === 'visits'" (click)="switchTab('visits')">
+        Visit History
+        <span class="tab-count">{{ visitLogs.length }}</span>
+      </button>
+    </div>
+
+    <!-- Requests Tab -->
+    <div *ngIf="selectedTab === 'requests'">
+      <div class="table-card" *ngIf="requests.length > 0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Visitor</th>
+              <th>Purpose</th>
+              <th>Valid Period</th>
+              <th>Requested</th>
+              <th>Approved By</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let r of requests; let i = index" class="tr" [style.animation-delay]="(i * 30) + 'ms'">
+              <td>
+                <div class="visitor-cell">
+                  <div class="v-avatar" [style.background]="avatarBg(r.visitorName)">{{ initials(r.visitorName) }}</div>
+                  <span class="v-name">{{ r.visitorName }}</span>
+                </div>
+              </td>
+              <td><span class="purpose-text" [title]="r.purpose">{{ r.purpose }}</span></td>
+              <td>
+                <div class="date-range">
+                  <span class="date-chip">{{ r.validFrom | date:'dd MMM' }}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span class="date-chip">{{ r.validTill | date:'dd MMM yyyy' }}</span>
+                </div>
+              </td>
+              <td class="td-muted">{{ r.requestedAt | date:'dd MMM yyyy' }}</td>
+              <td class="td-muted">{{ r.approvedByName || '—' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="statusClass(r.status)">
+                  <span class="status-dot"></span>{{ r.status }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" *ngIf="requests.length === 0">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
         </div>
+        <p class="empty-title">No requests yet</p>
+        <p class="empty-sub">Your visitor requests will appear here</p>
       </div>
-      <div *ngIf="requests.length === 0" class="empty-state">
-        <p>No requests available</p>
+    </div>
+
+    <!-- Visits Tab -->
+    <div *ngIf="selectedTab === 'visits'">
+      <div class="table-card" *ngIf="visitLogs.length > 0">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Visitor</th>
+              <th>Check In</th>
+              <th>Check Out</th>
+              <th>Duration</th>
+              <th>Purpose</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of visitLogs; let i = index" class="tr" [style.animation-delay]="(i * 30) + 'ms'">
+              <td>
+                <div class="visitor-cell">
+                  <div class="v-avatar" [style.background]="avatarBg(log.visitorName)">{{ initials(log.visitorName) }}</div>
+                  <span class="v-name">{{ log.visitorName }}</span>
+                </div>
+              </td>
+              <td class="td-muted">{{ log.checkInTime | date:'dd MMM, hh:mm a' }}</td>
+              <td class="td-muted">{{ log.checkOutTime ? (log.checkOutTime | date:'dd MMM, hh:mm a') : '—' }}</td>
+              <td>
+                <span class="duration-chip" *ngIf="log.duration">{{ log.duration }}</span>
+                <span class="active-chip" *ngIf="!log.duration">Active</span>
+              </td>
+              <td><span class="purpose-text" [title]="log.purpose">{{ log.purpose }}</span></td>
+              <td class="td-muted">{{ log.notes || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty-state" *ngIf="visitLogs.length === 0">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <p class="empty-title">No visit history</p>
+        <p class="empty-sub">Completed visits will appear here</p>
       </div>
     </div>
-  </div>
 
-  <!-- Requests Tab -->
-  <div *ngIf="selectedTab === 'requests'" class="tab-content">
-    <div class="table-wrapper">
-      <table class="requests-table">
-        <thead>
-          <tr>
-            <th>Visitor Name</th>
-            <th>Purpose</th>
-            <th>Status</th>
-            <th>Valid From</th>
-            <th>Valid Till</th>
-            <th>Requested At</th>
-            <th>Approved By</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="requests.length === 0">
-            <td colspan="7" class="no-data">No requests found</td>
-          </tr>
-          <tr *ngFor="let request of requests" [ngClass]="getStatusClass(request.status)">
-            <td><strong>{{ request.visitorName }}</strong></td>
-            <td class="purpose">{{ request.purpose }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="getStatusClass(request.status)">
-                {{ request.status.toUpperCase() }}
-              </span>
-            </td>
-            <td>{{ formatDate(request.validFrom) }}</td>
-            <td>{{ formatDate(request.validTill) }}</td>
-            <td>{{ formatDate(request.requestedAt) }}</td>
-            <td>{{ request.approvedByName || '-' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  </ng-container>
 
-  <!-- Visit History Tab -->
-  <div *ngIf="selectedTab === 'visits'" class="tab-content">
-    <div class="table-wrapper">
-      <table class="visits-table">
-        <thead>
-          <tr>
-            <th>Visitor Name</th>
-            <th>Check In</th>
-            <th>Check Out</th>
-            <th>Duration</th>
-            <th>Purpose</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="visitLogs.length === 0">
-            <td colspan="6" class="no-data">No visit logs found</td>
-          </tr>
-          <tr *ngFor="let log of visitLogs">
-            <td><strong>{{ log.visitorName }}</strong></td>
-            <td>{{ formatDate(log.checkInTime) }}</td>
-            <td>{{ log.checkOutTime ? formatDate(log.checkOutTime) : '-' }}</td>
-            <td class="duration">{{ log.duration || 'Active' }}</td>
-            <td class="purpose">{{ log.purpose }}</td>
-            <td class="notes">{{ log.notes || '-' }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" [class.toast-err]="!toast!.ok" *ngIf="toast">
+  <svg *ngIf="toast!.ok" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+  </svg>
+  <svg *ngIf="!toast!.ok" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+  {{ toast!.msg }}
 </div>

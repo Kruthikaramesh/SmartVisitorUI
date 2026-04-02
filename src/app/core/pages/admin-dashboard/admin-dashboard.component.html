@@ -1,122 +1,300 @@
-<div class="admin-dashboard-container">
-  <!-- Toast Notification -->
-  <div *ngIf="toast" class="toast" [class.success]="toast.ok" [class.error]="!toast.ok">
-    {{ toast.msg }}
-  </div>
+<div class="dash">
 
-  <!-- Page Header -->
-  <div class="page-header">
-    <h1>Admin Dashboard</h1>
-    <p class="subtitle">Manage visitor requests and approvals</p>
-  </div>
-
-  <!-- KPI Cards -->
-  <div *ngIf="kpi" class="kpi-section">
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-value">{{ kpi.totalRequests }}</div>
-        <div class="kpi-label">Total Requests</div>
-      </div>
-      <div class="kpi-card pending">
-        <div class="kpi-value">{{ kpi.pendingRequests }}</div>
-        <div class="kpi-label">Pending</div>
-      </div>
-      <div class="kpi-card approved">
-        <div class="kpi-value">{{ kpi.approvedRequests }}</div>
-        <div class="kpi-label">Approved</div>
-      </div>
-      <div class="kpi-card rejected">
-        <div class="kpi-value">{{ kpi.rejectedRequests }}</div>
-        <div class="kpi-label">Rejected</div>
-      </div>
-      <div class="kpi-card expired">
-        <div class="kpi-value">{{ kpi.expiredRequests }}</div>
-        <div class="kpi-label">Expired</div>
-      </div>
-      <div class="kpi-card approval-rate">
-        <div class="kpi-value">{{ kpi.approvalRate }}%</div>
-        <div class="kpi-label">Approval Rate</div>
+  <!-- ── Hero Header ─────────────────────────────────────────── -->
+  <div class="dash-hero">
+    <div class="dash-hero__left">
+      <p class="dash-hero__greeting">{{ greetingTime() }}, {{ currentUserName }} 👋</p>
+      <h1 class="dash-hero__title">Dashboard Overview</h1>
+      <p class="dash-hero__date">{{ today | date:'EEEE, d MMMM yyyy' }}</p>
+    </div>
+    <div class="dash-hero__right">
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        Live Data
       </div>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>Loading dashboard data...</p>
-  </div>
+  <!-- ── KPI Grid ────────────────────────────────────────────── -->
+  <div class="kpi-grid" *ngIf="kpi">
 
-  <!-- Pending Requests Section -->
-  <div *ngIf="!loading && pendingRequests.length > 0" class="requests-section">
-    <div class="section-header">
-      <h2>Pending Requests - Action Required</h2>
-      <span class="badge-count">{{ pendingRequests.length }}</span>
+    <div class="kpi-card kpi-card--total" style="animation-delay: 0ms">
+      <div class="kpi-card__top">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <span class="kpi-card__trend kpi-card__trend--neutral">All time</span>
+      </div>
+      <div class="kpi-card__value">{{ kpi.totalRequests }}</div>
+      <div class="kpi-card__label">Total Requests</div>
+      <div class="kpi-card__bar">
+        <div class="kpi-card__bar-fill kpi-card__bar-fill--total" style="width: 100%"></div>
+      </div>
     </div>
 
-    <div class="requests-table-wrapper">
-      <table class="requests-table">
-        <thead>
-          <tr>
-            <th>Visitor Name</th>
-            <th>Requested By</th>
-            <th>Purpose</th>
-            <th>Valid From</th>
-            <th>Valid Till</th>
-            <th>Days Until Expiry</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let request of pendingRequests" class="request-row">
-            <td class="visitor-name">
-              <strong>{{ request.visitorName }}</strong>
-            </td>
-            <td>{{ request.requestedByName }}</td>
-            <td class="purpose">{{ request.purpose }}</td>
-            <td>{{ formatDate(request.validFrom) }}</td>
-            <td>{{ formatDate(request.validTill) }}</td>
-            <td>
-              <span class="days-badge" [class.expiring]="getDaysUntilExpiry(request.validTill) <= 3">
-                {{ getDaysUntilExpiry(request.validTill) }} days
-              </span>
-            </td>
-            <td class="actions">
-              <button
-                (click)="approveRequest(request)"
-                [disabled]="actionLoading[request.requestId]"
-                class="btn btn-approve"
-                title="Approve this request"
-              >
-                <span *ngIf="!actionLoading[request.requestId]">✓ Approve</span>
-                <span *ngIf="actionLoading[request.requestId]">...</span>
-              </button>
-              <button
-                (click)="rejectRequest(request)"
-                [disabled]="actionLoading[request.requestId]"
-                class="btn btn-reject"
-                title="Reject this request"
-              >
-                <span *ngIf="!actionLoading[request.requestId]">✕ Reject</span>
-                <span *ngIf="actionLoading[request.requestId]">...</span>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="kpi-card kpi-card--pending" style="animation-delay: 60ms">
+      <div class="kpi-card__top">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <span class="kpi-card__trend kpi-card__trend--warn">Awaiting review</span>
+      </div>
+      <div class="kpi-card__value">{{ kpi.pendingRequests }}</div>
+      <div class="kpi-card__label">Pending</div>
+      <div class="kpi-card__bar">
+        <div class="kpi-card__bar-fill kpi-card__bar-fill--pending"
+             [style.width]="kpi.totalRequests > 0 ? ((kpi.pendingRequests / kpi.totalRequests) * 100) + '%' : '0%'">
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--approved" style="animation-delay: 120ms">
+      <div class="kpi-card__top">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <span class="kpi-card__trend kpi-card__trend--good">Cleared</span>
+      </div>
+      <div class="kpi-card__value">{{ kpi.approvedRequests }}</div>
+      <div class="kpi-card__label">Approved</div>
+      <div class="kpi-card__bar">
+        <div class="kpi-card__bar-fill kpi-card__bar-fill--approved"
+             [style.width]="kpi.totalRequests > 0 ? ((kpi.approvedRequests / kpi.totalRequests) * 100) + '%' : '0%'">
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--rejected" style="animation-delay: 180ms">
+      <div class="kpi-card__top">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <span class="kpi-card__trend kpi-card__trend--bad">Declined</span>
+      </div>
+      <div class="kpi-card__value">{{ kpi.rejectedRequests }}</div>
+      <div class="kpi-card__label">Rejected</div>
+      <div class="kpi-card__bar">
+        <div class="kpi-card__bar-fill kpi-card__bar-fill--rejected"
+             [style.width]="kpi.totalRequests > 0 ? ((kpi.rejectedRequests / kpi.totalRequests) * 100) + '%' : '0%'">
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-card--expired" style="animation-delay: 240ms">
+      <div class="kpi-card__top">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+          </svg>
+        </div>
+        <span class="kpi-card__trend kpi-card__trend--neutral">Lapsed</span>
+      </div>
+      <div class="kpi-card__value">{{ kpi.expiredRequests }}</div>
+      <div class="kpi-card__label">Expired</div>
+      <div class="kpi-card__bar">
+        <div class="kpi-card__bar-fill kpi-card__bar-fill--expired"
+             [style.width]="kpi.totalRequests > 0 ? ((kpi.expiredRequests / kpi.totalRequests) * 100) + '%' : '0%'">
+        </div>
+      </div>
+    </div>
+
+    <!-- Approval Rate — spans wider -->
+    <div class="kpi-card kpi-card--rate" style="animation-delay: 300ms">
+      <div class="kpi-card__top">
+        <div class="kpi-card__icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+        </div>
+        <span class="kpi-card__trend kpi-card__trend--good">Success metric</span>
+      </div>
+      <div class="kpi-rate-wrap">
+        <div class="kpi-card__value">{{ kpi.approvalRate }}<span class="kpi-card__pct">%</span></div>
+        <div class="kpi-ring-wrap">
+          <svg viewBox="0 0 90 90" class="kpi-ring">
+            <circle cx="45" cy="45" r="40" class="kpi-ring__track" />
+            <circle cx="45" cy="45" r="40" class="kpi-ring__fill"
+                    [style.stroke-dasharray]="approvalRateSegment() + ' 251'"
+                    [style.stroke]="kpi.approvalRate >= 70 ? '#22c55e' : kpi.approvalRate >= 40 ? '#f59e0b' : '#ef4444'" />
+          </svg>
+          <span class="kpi-ring__label">{{ kpi.approvalRate }}%</span>
+        </div>
+      </div>
+      <div class="kpi-card__label">Approval Rate</div>
+    </div>
+
+  </div>
+
+  <!-- ── Skeleton KPI ────────────────────────────────────────── -->
+  <div class="kpi-grid" *ngIf="loading && !kpi">
+    <div class="kpi-skel" *ngFor="let i of [1,2,3,4,5,6]">
+      <div class="sk sk-line sk-w40"></div>
+      <div class="sk sk-line sk-w20 sk-val"></div>
+      <div class="sk sk-line sk-w60"></div>
     </div>
   </div>
 
-  <!-- No Pending Requests -->
-  <div *ngIf="!loading && pendingRequests.length === 0" class="empty-state">
-    <div class="empty-icon">📭</div>
-    <h3>No Pending Requests</h3>
-    <p>All visitor requests have been reviewed and processed.</p>
+  <!-- ── Bottom Row ──────────────────────────────────────────── -->
+  <div class="bottom-row">
+
+    <!-- Recent Requests Feed -->
+    <div class="panel panel--feed">
+      <div class="panel__hdr">
+        <div class="panel__title-grp">
+          <div class="panel__dot panel__dot--blue"></div>
+          <h2 class="panel__title">Recent Requests</h2>
+        </div>
+        <span class="panel__count">{{ recentRequests.length }}</span>
+      </div>
+
+      <!-- Skeleton -->
+      <div *ngIf="loading" class="feed-skel">
+        <div class="feed-skel__row" *ngFor="let i of [1,2,3,4,5]">
+          <div class="sk sk-circle-sm"></div>
+          <div class="feed-skel__lines">
+            <div class="sk sk-line sk-w60"></div>
+            <div class="sk sk-line sk-w40"></div>
+          </div>
+          <div class="sk sk-pill"></div>
+        </div>
+      </div>
+
+      <!-- Empty -->
+      <div class="panel-empty" *ngIf="!loading && recentRequests.length === 0">
+        <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <p>No requests yet</p>
+      </div>
+
+      <!-- Feed list -->
+      <div class="feed" *ngIf="!loading && recentRequests.length > 0">
+        <div class="feed__item" *ngFor="let r of recentRequests; let i = index"
+             [style.animation-delay]="(i * 40) + 'ms'">
+          <div class="feed__avatar" [class]="statusClass(r.status)">
+            {{ r.visitorName[0]?.toUpperCase() || '?' }}
+          </div>
+          <div class="feed__info">
+            <span class="feed__name">{{ r.visitorName }}</span>
+            <span class="feed__meta">{{ r.purpose }}</span>
+          </div>
+          <div class="feed__right">
+            <span class="status-pill" [class]="statusClass(r.status)">{{ r.status }}</span>
+            <span class="feed__date">{{ formatDate(r.validFrom) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Breakdown Panel -->
+    <div class="panel panel--breakdown">
+      <div class="panel__hdr">
+        <div class="panel__title-grp">
+          <div class="panel__dot panel__dot--violet"></div>
+          <h2 class="panel__title">Status Breakdown</h2>
+        </div>
+      </div>
+
+      <div class="breakdown" *ngIf="kpi && kpi.totalRequests > 0">
+
+        <div class="breakdown__item">
+          <div class="breakdown__meta">
+            <span class="breakdown__dot breakdown__dot--approved"></span>
+            <span class="breakdown__label">Approved</span>
+            <span class="breakdown__count">{{ kpi.approvedRequests }}</span>
+          </div>
+          <div class="breakdown__track">
+            <div class="breakdown__fill breakdown__fill--approved"
+                 [style.width]="((kpi.approvedRequests / kpi.totalRequests) * 100) + '%'">
+            </div>
+          </div>
+          <span class="breakdown__pct">{{ kpi.totalRequests > 0 ? ((kpi.approvedRequests / kpi.totalRequests) * 100 | number:'1.0-0') : 0 }}%</span>
+        </div>
+
+        <div class="breakdown__item">
+          <div class="breakdown__meta">
+            <span class="breakdown__dot breakdown__dot--pending"></span>
+            <span class="breakdown__label">Pending</span>
+            <span class="breakdown__count">{{ kpi.pendingRequests }}</span>
+          </div>
+          <div class="breakdown__track">
+            <div class="breakdown__fill breakdown__fill--pending"
+                 [style.width]="((kpi.pendingRequests / kpi.totalRequests) * 100) + '%'">
+            </div>
+          </div>
+          <span class="breakdown__pct">{{ kpi.totalRequests > 0 ? ((kpi.pendingRequests / kpi.totalRequests) * 100 | number:'1.0-0') : 0 }}%</span>
+        </div>
+
+        <div class="breakdown__item">
+          <div class="breakdown__meta">
+            <span class="breakdown__dot breakdown__dot--rejected"></span>
+            <span class="breakdown__label">Rejected</span>
+            <span class="breakdown__count">{{ kpi.rejectedRequests }}</span>
+          </div>
+          <div class="breakdown__track">
+            <div class="breakdown__fill breakdown__fill--rejected"
+                 [style.width]="((kpi.rejectedRequests / kpi.totalRequests) * 100) + '%'">
+            </div>
+          </div>
+          <span class="breakdown__pct">{{ kpi.totalRequests > 0 ? ((kpi.rejectedRequests / kpi.totalRequests) * 100 | number:'1.0-0') : 0 }}%</span>
+        </div>
+
+        <div class="breakdown__item">
+          <div class="breakdown__meta">
+            <span class="breakdown__dot breakdown__dot--expired"></span>
+            <span class="breakdown__label">Expired</span>
+            <span class="breakdown__count">{{ kpi.expiredRequests }}</span>
+          </div>
+          <div class="breakdown__track">
+            <div class="breakdown__fill breakdown__fill--expired"
+                 [style.width]="((kpi.expiredRequests / kpi.totalRequests) * 100) + '%'">
+            </div>
+          </div>
+          <span class="breakdown__pct">{{ kpi.totalRequests > 0 ? ((kpi.expiredRequests / kpi.totalRequests) * 100 | number:'1.0-0') : 0 }}%</span>
+        </div>
+
+      </div>
+
+      <!-- Summary footer -->
+      <div class="breakdown__summary" *ngIf="kpi">
+        <div class="summary-item">
+          <span class="summary-item__val">{{ kpi.totalRequests }}</span>
+          <span class="summary-item__lbl">Total</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-item">
+          <span class="summary-item__val">{{ kpi.approvalRate }}%</span>
+          <span class="summary-item__lbl">Approval Rate</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-item">
+          <span class="summary-item__val">{{ kpi.pendingRequests }}</span>
+          <span class="summary-item__lbl">Awaiting</span>
+        </div>
+      </div>
+
+      <!-- Skeleton -->
+      <div *ngIf="loading && !kpi" class="breakdown-skel">
+        <div class="sk sk-line sk-w80" *ngFor="let i of [1,2,3,4]"></div>
+      </div>
+
+    </div>
+
   </div>
 
-  <!-- Request Logs Table -->
-  <app-request-log-table
-    *ngIf="requestLogs.length > 0"
-    [logs]="requestLogs"
-    title="Request Activity Logs"
-  ></app-request-log-table>
 </div>

@@ -50,7 +50,7 @@ export class VisitorsComponent implements OnInit {
   ngOnInit() {
     this.form = this.fb.group({
       visitorName: ['', [Validators.required, Validators.maxLength(100)]],
-      phoneNumber: ['', Validators.maxLength(20)],
+      phoneNumber: ['', [Validators.minLength(10), Validators.maxLength(10), Validators.pattern(/^\d+$/)]],
       email: ['', [Validators.email, Validators.maxLength(150)]],
       companyName: ['', Validators.maxLength(150)]
     });
@@ -91,11 +91,10 @@ export class VisitorsComponent implements OnInit {
     this.loading = true;
     this.cdr.detectChanges();
 
-    this.http.get<any>(`${this.API}/by-id/${this.CURRENT_USER_ID}`).subscribe({
+    this.http.get<any>(`${this.API}/by-user/${this.CURRENT_USER_ID}`).subscribe({
       next: raw => {
         this.zone.run(() => {
-          const visitor = this.toOne(raw);
-          this.visitors = visitor ? [visitor] : [];
+          this.visitors = this.toArray(raw);
           this.apply();
           this.loading = false;
           this.cdr.detectChanges();
@@ -104,7 +103,7 @@ export class VisitorsComponent implements OnInit {
       error: err => {
         this.zone.run(() => {
           console.error('API error:', err);
-          this.notify('Failed to load visitor', false);
+          this.notify('Failed to load visitors', false);
           this.loading = false;
           this.cdr.detectChanges();
         });
@@ -165,7 +164,7 @@ export class VisitorsComponent implements OnInit {
     const val = this.form.value;
 
     if (this.modalMode === 'create') {
-      this.http.post<any>(this.API, { ...val, createdBy: this.CURRENT_USER_ID }).subscribe({
+      this.http.post<any>(this.API, { ...val, createdAt: new Date().toISOString(), createdBy: this.CURRENT_USER_ID }).subscribe({
         next: raw => {
           this.zone.run(() => {
             const c = this.toOne(raw);
@@ -231,6 +230,7 @@ export class VisitorsComponent implements OnInit {
       purpose: this.requestForm.value.purpose,
       validFrom: this.requestForm.value.validFrom,
       validTill: this.requestForm.value.validTill,
+      createdAt: new Date().toISOString(),
       createdBy: this.CURRENT_USER_ID
     };
 

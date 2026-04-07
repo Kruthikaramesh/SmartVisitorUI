@@ -19,6 +19,7 @@ export interface CreateVisitorRequestDto {
   validFrom: string;
   validTill: string;
   createdBy: number;
+  createdAt: string;
 }
 
 export interface UpdateRequestStatusDto {

@@ -206,9 +206,9 @@
 
         <!-- Phone -->
         <div class="field" [class.field-err]="f['phoneNumber'].invalid && f['phoneNumber'].touched">
-          <label class="flbl">Phone</label>
-          <input class="finput" formControlName="phoneNumber" placeholder="9876543210" />
-          <span class="ferr" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors?.['pattern']">Must be 10 digits starting with 6-9.</span>
+            <label class="flbl">Phone</label>
+            <input class="finput" formControlName="phoneNumber" placeholder="9876543210" />
+            <span class="ferr" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors?.['pattern']">Must be 10 digits starting with 6-9.</span>
         </div>
 
         <!-- Role -->

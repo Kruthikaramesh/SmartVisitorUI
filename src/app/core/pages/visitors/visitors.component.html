@@ -179,8 +179,10 @@
 
         <div class="field" [class.field-error]="f['phoneNumber'].invalid && f['phoneNumber'].touched">
           <label class="field-label">Phone</label>
-          <input class="field-input" formControlName="phoneNumber" placeholder="+91 98765 43210" />
-          <span class="err-msg" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors?.['maxlength']">Max 20 characters.</span>
+          <input class="field-input" formControlName="phoneNumber" placeholder="98765 43210" />
+          <span class="err-msg" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors?.['minlength']">Phone must be exactly 10 digits.</span>
+          <span class="err-msg" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors?.['maxlength']">Phone must be exactly 10 digits.</span>
+          <span class="err-msg" *ngIf="f['phoneNumber'].touched && f['phoneNumber'].errors?.['pattern']">Phone must contain only digits.</span>
         </div>
 
         <div class="field" [class.field-error]="f['email'].invalid && f['email'].touched">

@@ -56,7 +56,7 @@ export class UsersComponent implements OnInit {
       fullName: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[a-zA-Z\s]+$/)]],
       email: ['', [Validators.required, Validators.maxLength(100), Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]{2,}\.com$/)]],
       password: ['', [Validators.required, Validators.maxLength(255)]],
-      phoneNumber: ['', [Validators.pattern(/^[6789]\d{9}$/)]],
+      phoneNumber: ['', [Validators.pattern(/^[6789]\d{9}$/), Validators.maxLength(10), Validators.minLength(10)]],
       roleId: [null, [Validators.required, Validators.min(1)]],
       designationId: [null, [Validators.required, Validators.min(1)]]
     });

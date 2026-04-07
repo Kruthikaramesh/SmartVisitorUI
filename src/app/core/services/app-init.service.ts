@@ -18,6 +18,7 @@ export class AppInitService {
   /**
    * Initialize the app on startup
    * Check if user has a valid token and user data in localStorage
+   * Don't redirect here - let route guards handle navigation based on auth status
    */
   initialize(): Promise<void> {
     return new Promise((resolve) => {
@@ -26,16 +27,13 @@ export class AppInitService {
       const userId = localStorage.getItem('userId');
       const role = localStorage.getItem('role');
 
-      // If no token, redirect to login
+      // If no valid session, clear storage but don't redirect
+      // The route guards (authGuard, role guards) will handle redirects
       if (!token || !userId || !role) {
         localStorage.clear();
-        this.router.navigate(['/auth/login']);
-        resolve();
-        return;
       }
 
-      // Token exists - app is ready to proceed
-      // The route guards will verify the token on each route
+      // App is ready to proceed - routes will handle auth checks
       resolve();
     });
   }

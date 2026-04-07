@@ -35,19 +35,27 @@ export class SecurityDashboardComponent {
     map((kpi: SecurityKpi) => [
       {
         label: 'Total Visitors',
-        value: kpi.totalVisitors
+        value: kpi.totalVisitors,
+        icon: 'users',
+        color: 'indigo'
       },
       {
         label: 'Total Approved',
-        value: kpi.totalApproved
+        value: kpi.totalApproved,
+        icon: 'check',
+        color: 'teal'
       },
       {
         label: 'Expired',
-        value: kpi.totalExpired
+        value: kpi.totalExpired,
+        icon: 'clock',
+        color: 'violet'
       },
       {
         label: 'Denied',
-        value: kpi.totalDenied
+        value: kpi.totalDenied,
+        icon: 'x',
+        color: 'rose'
       }
     ])
   );
